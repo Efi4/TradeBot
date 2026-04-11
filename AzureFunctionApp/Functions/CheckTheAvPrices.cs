@@ -1,7 +1,8 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using AzureFunctionApp.Services;
 using AzureFunctionApp.Interfaces;
+using System.Threading.Tasks;
+using System;
 
 namespace AzureFunctionApp.Functions
 {

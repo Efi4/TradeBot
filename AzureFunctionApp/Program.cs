@@ -1,8 +1,8 @@
-using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using AzureFunctionApp.Services;
 using AzureFunctionApp.Interfaces;
+
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
@@ -12,4 +12,5 @@ var host = new HostBuilder()
     })
     .Build();
 
-host.Run();
+await host.RunAsync();
+

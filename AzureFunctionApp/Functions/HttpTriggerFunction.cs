@@ -1,6 +1,7 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Net;
 
 namespace AzureFunctionApp.Functions
@@ -28,7 +29,7 @@ namespace AzureFunctionApp.Functions
                 message = "Hello from Azure Function!",
                 timestamp = DateTime.Now,
                 method = req.Method,
-                path = req.Url.Path
+                path = req.Url.AbsolutePath
             };
             
             response.WriteAsJsonAsync(responseBody);
