@@ -13,3 +13,31 @@ TradeBot can be configured to monitor specific games like WarEra. Here are some 
 - **Epic Item Alert**: An Epic item has been listed at a bargain price of 300 gold.
 - **Legendary Item Alert**: A Legendary item price dropped from 800 gold to 400 gold in the last hour.
 - **Rare Item Alert**: A Rare item has been undercut by a competitor selling for 10% less.
+
+## Projects
+
+### AzureFunctionApp
+A .NET 8 Azure Function App with a timer-triggered function for continuous market monitoring.
+
+**Key Features:**
+- **.NET 8** target framework
+- **Timer Trigger**: Executes every 5 seconds (configurable)
+- **Dependency Injection**: Built-in support for logging and custom services
+- **Local Development**: Ready to run locally with Azure Functions Core Tools
+
+**See**: [AzureFunctionApp/README.md](AzureFunctionApp/README.md) for setup and deployment instructions.
+
+---
+
+## Getting Started
+
+1. Open `TradeBot.sln` in Visual Studio 2022
+2. Install .NET 8 SDK if not already installed
+3. Restore NuGet packages: `dotnet restore`
+4. Build the solution: `dotnet build`
+
+## Development
+
+For the Azure Function App:
+- Code: [AzureFunctionApp/](AzureFunctionApp/)
+- Main Function: [TimerTriggerFunction.cs](AzureFunctionApp/TimerTriggerFunction.cs)

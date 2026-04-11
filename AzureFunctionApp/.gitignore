@@ -1,0 +1,24 @@
+# Byte-compiled / optimized / DLL files
+.vs/
+.vscode/
+bin/
+obj/
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Local settings
+local.settings.json
+
+# Azure Functions
+.NET8 Runtime
+.csx
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/

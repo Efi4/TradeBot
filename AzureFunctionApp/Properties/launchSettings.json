@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AzureFunctionApp": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7071"
+    }
+  }
+}
