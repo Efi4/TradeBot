@@ -5,6 +5,7 @@ bin/
 obj/
 
 # User-specific files
+.env
 *.suo
 *.user
 *.userosscache
@@ -22,3 +23,4 @@ local.settings.json
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
+.env.template

@@ -13,6 +13,7 @@
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.1.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Timer" Version="4.1.0" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.16.4" OutputItemType="Analyzer" />
+        <PackageReference Include="DotNetEnv" Version="2.5.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -23,5 +24,10 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <CopyToPublishDirectory>Never</CopyToPublishDirectory>
         </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\TradeBot.Data\TradeBot.Data.csproj" />
+        <ProjectReference Include="..\TradeBot.Base\TradeBot.Base.csproj" />
     </ItemGroup>
 </Project>
