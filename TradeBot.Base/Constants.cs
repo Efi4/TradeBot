@@ -2,7 +2,8 @@ namespace TradeBot.Base;
 
 public static class Constants
 {
-    public const string AzureStorageConnectionStringEnvironmentVariableName = "ConnectionStrings__tradingStorageAccount";
-    public const string AzureSqlConnectionStringEnvironmentVariableName = "ConnectionStrings__tradingDatabase";
+    public const string AzureStorageConnectionStringEnvironmentVariableName = "CUSTOMCONNSTR_tradingStorageAccount";
+    public const string AzureSqlConnectionStringEnvironmentVariableName = "SQLAZURECONNSTR_tradingDatabase";
+    public const string LocalSqlConnectionStringEnvironmentVariableName = "ConnectionStrings__tradingDatabase";
 
 }

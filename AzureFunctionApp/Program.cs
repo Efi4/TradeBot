@@ -20,7 +20,7 @@ var host = new HostBuilder()
     .ConfigureServices(services =>
     {
         // Register data access services
-        var connectionString = EnvironmentConfiguration.GetTradingDatabaseConnectionString();//config.GetConnectionString("tradingDatabase") 
+        var connectionString = EnvironmentConfiguration.GetTradingDatabaseConnectionString(environment == "Development");
         
         services.AddTradingDatabase(connectionString);
 

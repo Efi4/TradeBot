@@ -29,10 +29,12 @@ public static class EnvironmentConfiguration
     /// <summary>
     /// Gets the trading database connection string from environment
     /// </summary>
-    public static string GetTradingDatabaseConnectionString()
+    public static string GetTradingDatabaseConnectionString(bool isDevelopment = false)
     {
-        return Environment.GetEnvironmentVariable(Constants.AzureSqlConnectionStringEnvironmentVariableName)
-            ?? throw new ArgumentNullException(nameof(Constants.AzureSqlConnectionStringEnvironmentVariableName));
+        var connectionString = isDevelopment ? 
+            Environment.GetEnvironmentVariable(Constants.LocalSqlConnectionStringEnvironmentVariableName) : 
+            Environment.GetEnvironmentVariable(Constants.AzureSqlConnectionStringEnvironmentVariableName);
+        return connectionString ?? throw new ArgumentNullException("Trading database connection string environment variable is not set.");
     }
 
     /// <summary>
