@@ -5,6 +5,7 @@ bin/
 obj/
 
 # User-specific files
+appsettings.json
 .env
 *.suo
 *.user
@@ -17,6 +18,7 @@ local.settings.json
 # Azure Functions
 .NET8 Runtime
 .csx
+*azurite*
 
 # Build results
 [Dd]ebug/

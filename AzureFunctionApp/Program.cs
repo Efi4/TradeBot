@@ -2,12 +2,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using AzureFunctionApp.Services;
 using AzureFunctionApp.Interfaces;
-using TradeBot.Data.Contexts;
 using TradeBot.Base;
 using TradeBot.Data.Configuration;
 using System;
 
-// // Load environment variables from .env file
+// Load environment variables from .env file
 var environment = Environment.GetEnvironmentVariable("AZURE_FUNCTIONS_ENVIRONMENT");
 if(environment == "Development")
 {
@@ -19,8 +18,7 @@ var host = new HostBuilder()
     .ConfigureServices(services =>
     {
         // Register data access services
-        var connectionString = EnvironmentConfiguration.GetTradingDatabaseConnectionString();
-        // var connectionString = System.Environment.GetEnvironmentVariable(Constants.AzureSqlConnectionStringEnvironmentVariableName);
+        var connectionString = EnvironmentConfiguration.GetTradingDatabaseConnectionString();//config.GetConnectionString("tradingDatabase") 
         
         services.AddTradingDatabase(connectionString);
 

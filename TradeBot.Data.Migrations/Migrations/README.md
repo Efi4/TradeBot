@@ -12,6 +12,7 @@ Migration details are managed automatically by Entity Framework Core.
 
 ## Migration Status
 
-Once you've run the initial setup, migrations are automatically applied at application startup through `DatabaseConfiguration.InitializeDatabaseAsync()`.
+Migration is managed manually by console commands like 
+dotnet ef database update _migrationName_
 
 To create new migrations after modifying entities, see [MIGRATIONS_GUIDE.md](../MIGRATIONS_GUIDE.md).
