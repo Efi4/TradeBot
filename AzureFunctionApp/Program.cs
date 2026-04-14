@@ -5,6 +5,8 @@ using AzureFunctionApp.Interfaces;
 using TradeBot.Base;
 using TradeBot.Data.Configuration;
 using System;
+using TradeBot.Data.Contexts;
+using Microsoft.EntityFrameworkCore;
 
 // Load environment variables from .env file
 var environment = Environment.GetEnvironmentVariable("AZURE_FUNCTIONS_ENVIRONMENT");
@@ -26,5 +28,11 @@ var host = new HostBuilder()
         services.AddScoped<ICheckTheAvPricesService, CheckTheAvPricesService>();
     })
     .Build();
+
+    using (var scope = host.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<TradingDbContext>();
+        await db.Database.MigrateAsync();
+    }
 
 await host.RunAsync();
