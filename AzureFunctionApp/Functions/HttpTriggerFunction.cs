@@ -1,7 +1,6 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Net;
 
 namespace AzureFunctionApp.Functions
@@ -22,17 +21,6 @@ namespace AzureFunctionApp.Functions
             _logger.LogInformation("HTTP trigger function processed a request.");
 
             var response = req.CreateResponse(HttpStatusCode.OK);
-            response.Headers.Add("Content-Type", "application/json");
-            
-            var responseBody = new
-            {
-                message = "Hello from Azure Function!",
-                timestamp = DateTime.Now,
-                method = req.Method,
-                path = req.Url.AbsolutePath
-            };
-            
-            response.WriteAsJsonAsync(responseBody);
             return response;
         }
     }
