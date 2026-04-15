@@ -5,7 +5,6 @@ bin/
 obj/
 
 # User-specific files
-appsettings.json
 .env
 *.suo
 *.user
