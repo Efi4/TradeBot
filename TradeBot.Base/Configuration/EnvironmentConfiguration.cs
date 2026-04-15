@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using DotNetEnv;
 
-namespace TradeBot.Base;
+namespace TradeBot.Base.Configuration;
 
 /// <summary>
 /// Environment configuration loader
@@ -32,8 +32,8 @@ public static class EnvironmentConfiguration
     public static string GetTradingDatabaseConnectionString(bool isDevelopment = false)
     {
         var connectionString = isDevelopment ? 
-            Environment.GetEnvironmentVariable(Constants.LocalSqlConnectionStringEnvironmentVariableName) : 
-            Environment.GetEnvironmentVariable(Constants.AzureSqlConnectionStringEnvironmentVariableName);
+            Environment.GetEnvironmentVariable(Constants.EnvironmentVariables.LocalSqlConnectionStringEnvironmentVariableName) : 
+            Environment.GetEnvironmentVariable(Constants.EnvironmentVariables.AzureSqlConnectionStringEnvironmentVariableName);
         return connectionString ?? throw new ArgumentNullException("Trading database connection string environment variable is not set.");
     }
 
@@ -42,7 +42,7 @@ public static class EnvironmentConfiguration
     /// </summary>
     public static string GetAzureStorageConnectionString()
     {
-        return Environment.GetEnvironmentVariable(Constants.AzureStorageConnectionStringEnvironmentVariableName)
-            ?? throw new ArgumentNullException(nameof(Constants.AzureStorageConnectionStringEnvironmentVariableName));
+        return Environment.GetEnvironmentVariable(Constants.EnvironmentVariables.AzureStorageConnectionStringEnvironmentVariableName)
+            ?? throw new ArgumentNullException(nameof(Constants.EnvironmentVariables.AzureStorageConnectionStringEnvironmentVariableName));
     }
 }

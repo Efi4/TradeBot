@@ -11,6 +11,8 @@ Project("{9A19103F-16F9-4668-BE54-9A1E7A4F7556}") = "TradeBot.Data.Migrations", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TradeBot.Base", "TradeBot.Base\TradeBot.Base.csproj", "{60B41C71-CED6-4F38-807D-587D3F6988EF}"
 EndProject
+Project("{9A19103F-16F9-4668-BE54-9A1E7A4F7556}") = "TradeBot.Core", "TradeBot.Core\TradeBot.Core.csproj", "{22222222-2222-2222-2222-222222222222}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,5 +35,9 @@ Global
 		{60B41C71-CED6-4F38-807D-587D3F6988EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{60B41C71-CED6-4F38-807D-587D3F6988EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{60B41C71-CED6-4F38-807D-587D3F6988EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22222222-2222-2222-2222-222222222222}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22222222-2222-2222-2222-222222222222}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22222222-2222-2222-2222-222222222222}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22222222-2222-2222-2222-222222222222}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

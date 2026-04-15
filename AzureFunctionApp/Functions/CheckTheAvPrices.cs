@@ -1,6 +1,6 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using AzureFunctionApp.Interfaces;
+using TradeBot.Core.Interfaces;
 using System.Threading.Tasks;
 using System;
 

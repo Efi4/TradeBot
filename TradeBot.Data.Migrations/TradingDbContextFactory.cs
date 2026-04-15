@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Design;
 using TradeBot.Data.Contexts;
 using System;
 using TradeBot.Base;
+using TradeBot.Base.Configuration;
 
 namespace TradeBot.Data.Migrations;
 
@@ -20,7 +21,7 @@ public class TradingDbContextFactory : IDesignTimeDbContextFactory<TradingDbCont
             EnvironmentConfiguration.LoadEnvironment();
         }
         // Load connection string from environment
-        var connectionString = Environment.GetEnvironmentVariable(Constants.AzureSqlConnectionStringEnvironmentVariableName);
+        var connectionString = Environment.GetEnvironmentVariable(Constants.EnvironmentVariables.LocalSqlConnectionStringEnvironmentVariableName);
 
         // if (string.IsNullOrEmpty(connectionString))
         // {
