@@ -39,7 +39,8 @@ jobs:
     - name: Prepare Test Environment
       run: |
         docker compose up -d --wait
-        func start --script-root ./AzureFunctionApp --no-build --runtime default &
+        func start --script-root ./AzureFunctionApp --no-build --worker-runtime dotnet-isolated &
+        sleep 15 # Wait for the function app to start
 
     - name: Test
       run: dotnet test --filter TestCategory=Integration --no-restore --configuration Release --no-build --logger "trx;LogFileName=TestResults.trx"
