@@ -17,11 +17,11 @@ TradeBot can be configured to monitor specific games like WarEra. Here are some 
 ## Projects
 
 ### AzureFunctionApp
-A .NET 8 Azure Function App with a timer-triggered function for continuous market monitoring.
+A .NET 8 Azure Function App with set of functions for continuous market monitoring.
 
 **Key Features:**
 - **.NET 8** target framework
-- **Timer Trigger**: Executes every 5 seconds (configurable)
+- **Timer Trigger**: Executes every n seconds (configurable)
 - **Dependency Injection**: Built-in support for logging and custom services
 - **Local Development**: Ready to run locally with Azure Functions Core Tools
 
@@ -31,7 +31,7 @@ A .NET 8 Azure Function App with a timer-triggered function for continuous marke
 
 ## Getting Started
 
-1. Open `TradeBot.sln` in Visual Studio 2022
+1. Open `TradeBot.sln` in Visual Studio or VS Code
 2. Install .NET 8 SDK if not already installed
 3. Restore NuGet packages: `dotnet restore`
 4. Build the solution: `dotnet build`
@@ -40,4 +40,14 @@ A .NET 8 Azure Function App with a timer-triggered function for continuous marke
 
 For the Azure Function App:
 - Code: [AzureFunctionApp/](AzureFunctionApp/)
-- Main Function: [TimerTriggerFunction.cs](AzureFunctionApp/TimerTriggerFunction.cs)
+For local database and storage account emulator:
+- [docker compose file](docker-compose.yml)
+- If docker engine is available, you can run 'docker compose up -d' to ensure application has required infrastructure to function locally. 
+
+## Infrastructure
+
+All resources are hosted in Azure:
+ - Github Actions workflow is used for provisioning. 
+ - Function app is available by link [functionapp](tradebot-fecxhhevc8hfe7g5.westeurope-01.azurewebsites.net).
+ - It uses storage account and azure sql database as data layer.
+ - Keyvault is used for secrets management.
