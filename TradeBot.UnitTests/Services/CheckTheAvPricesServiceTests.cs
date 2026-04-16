@@ -18,7 +18,7 @@ namespace TradeBot.UnitTests.Services
     {
         private Mock<ILogger<CheckTheAvPricesService>> _mockLogger = null!;
         private Mock<IOptions<HttpHeaders>> _mockHttpHeadersOptions = null!;
-        private CheckTheAvPricesService sut = null!;
+        private CheckTheAvPricesService _sut = null!;
 
         [OneTimeSetUp]
         public void Setup()
@@ -41,7 +41,7 @@ namespace TradeBot.UnitTests.Services
             };
             _mockHttpHeadersOptions.Setup(x => x.Value).Returns(httpHeaders);
 
-            sut = new CheckTheAvPricesService(
+            _sut = new CheckTheAvPricesService(
                 _mockLogger.Object,
                 httpClient,
                 _mockHttpHeadersOptions.Object
@@ -49,10 +49,10 @@ namespace TradeBot.UnitTests.Services
         }
 
         [Test]
-        public async Task CheckPricesAsync_ShouldReturnSuccessResult()
+         public async Task CheckPricesAsync_ShouldReturnSuccessResult()
         {
             // Act
-            var result = await sut.CheckPricesAsync();
+            var result = await _sut.CheckPricesAsync();
 
             // Assert
             result.Should().NotBeNull();
@@ -65,7 +65,7 @@ namespace TradeBot.UnitTests.Services
         public async Task CheckPricesAsync_ShouldLogInformationMessage()
         {
             // Act
-            await sut.CheckPricesAsync();
+            await _sut.CheckPricesAsync();
 
             // Assert
             _mockLogger.Verify(
@@ -82,7 +82,7 @@ namespace TradeBot.UnitTests.Services
         public async Task CheckPricesAsync_ShouldHaveCorrectItemsAndDealsCount()
         {
             // Act
-            var result = await sut.CheckPricesAsync();
+            var result = await _sut.CheckPricesAsync();
 
             // Assert
             result.ItemsChecked.Should().Be(0);
@@ -96,7 +96,7 @@ namespace TradeBot.UnitTests.Services
             Environment.SetEnvironmentVariable("PRICECHECK_API_URL", "invalid://url");
 
             // Act
-            var result = await sut.CheckPricesAsync();
+            var result = await _sut.CheckPricesAsync();
 
             // Assert
             result.Should().NotBeNull();
@@ -107,7 +107,7 @@ namespace TradeBot.UnitTests.Services
         public async Task CheckPricesAsync_ResultShouldContainHttpStatusMessage()
         {
             // Act
-            var result = await sut.CheckPricesAsync();
+            var result = await _sut.CheckPricesAsync();
 
             // Assert
             result.Messages.Should().Contain(msg => msg.Contains("OK"));

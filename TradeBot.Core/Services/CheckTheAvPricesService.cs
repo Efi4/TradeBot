@@ -91,9 +91,9 @@ namespace TradeBot.Core.Services
                 headers.TryGetValue("Cookie", out var cookieHeader);
                 if (!string.IsNullOrEmpty(cookieHeader))
                 {
-                    Console.WriteLine($"Found cookie in secrets, starts with: {cookieHeader.Substring(0, 10)}...");
+                    _logger.LogInformation($"Found cookie in secrets, starts with: {cookieHeader.Substring(0, 10)}...");
                 }
-                else Console.WriteLine($"Error: No cookie found in secrets");
+                else _logger.LogWarning($"Error: No cookie found in secrets");
 
 
                 _logger.LogInformation($"Making POST request to {url}");

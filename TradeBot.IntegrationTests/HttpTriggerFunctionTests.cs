@@ -21,6 +21,7 @@ namespace TradeBot.IntegrationTests
         }
 
         [Test]
+        [Category("Integration")]
         public async Task HttpTriggerFunction_PostRequest_ShouldReturn200()
         {
             // Arrange
@@ -35,6 +36,7 @@ namespace TradeBot.IntegrationTests
         }
 
         [Test]
+        [Category("Integration")]
         public async Task HttpTriggerFunction_PostRequest_ShouldHaveValidResponse()
         {
             // Arrange
