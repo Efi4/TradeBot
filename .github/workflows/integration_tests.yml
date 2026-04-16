@@ -41,7 +41,7 @@ jobs:
       env:
         "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated"
         "AzureWebJobsStorage": "UseDevelopmentStorage=true"
-        "SQLAZURECONNSTR_tradingDatabase": "Server=127.0.0.1,1433;Database=trading;User Id=sa;Password=@dmin!23;Encrypt=False;TrustServerCertificate=True;"
+        "ConnectionStrings__tradingDatabase": "Server=127.0.0.1,1433;Database=trading;User Id=sa;Password=@dmin!23;Encrypt=False;TrustServerCertificate=True;"
       run: |
         docker compose up -d --wait
         func start --script-root ./AzureFunctionApp &
