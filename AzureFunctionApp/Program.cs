@@ -33,7 +33,7 @@ var host = new HostBuilder()
         services.AddHttpClient<ICheckTheAvPricesService, CheckTheAvPricesService>();
 
         // Bind HttpHeaders configuration
-        services.Configure<HttpHeaders>(context.Configuration.GetSection("HttpHeaders"));
+        services.Configure<RequestData>(context.Configuration.GetSection("RequestData"));
     })
     .ConfigureAppConfiguration((context, builder) =>
     {
