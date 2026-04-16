@@ -44,7 +44,7 @@ jobs:
         "SQLAZURECONNSTR_tradingDatabase": "Server=127.0.0.1,1433;Database=trading;User Id=sa;Password=@dmin!23;Encrypt=False;TrustServerCertificate=True;"
       run: |
         docker compose up -d --wait
-        func start --script-root ./AzureFunctionApp --no-build &
+        func start --script-root ./AzureFunctionApp &
         sleep 15 # Wait for the function app to start
 
     - name: Test
