@@ -6,6 +6,7 @@ on:
 
 jobs:
   integration-tests:
+    
     runs-on: ubuntu-latest
 
     steps:
@@ -37,9 +38,11 @@ jobs:
         sudo apt-get install azure-functions-core-tools-4
       
     - name: Prepare Test Environment
+      env:
+        "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated"
       run: |
         docker compose up -d --wait
-        func start --script-root ./AzureFunctionApp --no-build --worker-runtime dotnet-isolated &
+        func start --script-root ./AzureFunctionApp --no-build &
         sleep 15 # Wait for the function app to start
 
     - name: Test
