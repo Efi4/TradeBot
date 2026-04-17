@@ -33,6 +33,7 @@ namespace TradeBot.UnitTests.Services
             // Setup default HttpHeaders
             var httpHeaders = new RequestData
             {
+                BaseUrl = "http://localhost:7071",
                 HttpHeadersDictionary = new Dictionary<string, string>
                 {
                     { "User-Agent", "TradeBot/1.0" },

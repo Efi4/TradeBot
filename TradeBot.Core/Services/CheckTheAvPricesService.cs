@@ -81,20 +81,24 @@ public class CheckTheAvPricesService : ICheckTheAvPricesService
             var query = HttpUtility.ParseQueryString(builder.Query);
             query["batch"] = "1";
             builder.Query = query.ToString();
+            builder.Port = -1; // Ensure default port is being added based on the schema (http/https)
             // Create request with headers including cookie
             var itemCode = "sniper";
-            int itemAttackStat = 109;
-            int itemCriticalChanceStat = 20;
-            int batchHardLimit = 12;
             var weaponListRequest = new HttpRequestMessage(HttpMethod.Post, builder.ToString())
             {
-                Content = new StringContent("{\"0\":"
-                +"{\"itemCode\":"
-                +$"\"{itemCode}\",\"limit\":{batchHardLimit},"
-                +"\"minSkills\":{\"attack\":"
-                +$"{itemAttackStat},\"criticalChance\":{itemCriticalChanceStat}"
-                +"},\"direction\":\"forward\"}}", 
+                Content = new StringContent("{\"0\":{\"itemCode\":"
+                +$"\"{itemCode}\",\"limit\":12,\"direction\":\"forward\""
+                +"},\"1\":{\"itemCode\":"
+                +$"\"{itemCode}\",\"limit\":10,\"transactionType\":\"itemMarket\","
+                +"\"direction\":\"forward\"}}",
                 System.Text.Encoding.UTF8, "application/json")
+                // Content = new StringContent("{\"0\":"
+                // +"{\"itemCode\":"
+                // +$"\"{itemCode}\",\"limit\":{batchHardLimit},"
+                // +"\"minSkills\":{\"attack\":"
+                // +$"{itemAttackStat},\"criticalChance\":{itemCriticalChanceStat}"
+                // +"},\"direction\":\"forward\"}}", 
+                // System.Text.Encoding.UTF8, "application/json")
             };
             Console.WriteLine($"Content: {weaponListRequest.Content.ReadAsStringAsync().Result}");
  
@@ -117,8 +121,8 @@ public class CheckTheAvPricesService : ICheckTheAvPricesService
 
             if (response.IsSuccessStatusCode)
             {
-                var content = await response.Content.ReadFromJsonAsync<ItemMarketResponseModel>();
-                Console.WriteLine(content.ItemModel[0]?.Item.Skills.Keys);
+                var content = await response.Content.ReadFromJsonAsync<List<ItemMarketResponseModel>>();
+                Console.WriteLine(content?[0].Result.Data.ItemsModel[0]?.Item.Skills.Keys);
                 _logger.LogInformation($"HTTP request successful: {response.StatusCode}");
                 return (true, $"HTTP POST successful - Status: {response.StatusCode}");
             }

@@ -1,6 +1,6 @@
 namespace TradeBot.Core.Models;
 
-public class ResponseItemModel
+public class ResponseWeaponItemModel
 {
     public string ItemCode { get; set; }
     public TradeBot.Core.Models.ItemModel Item { get; set; }
