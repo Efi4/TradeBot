@@ -11,6 +11,8 @@ using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Http.Json;
 using System.Web;
+using TradeBot.Core.Objects;
+using System.Linq;
 
 namespace TradeBot.Core.Services;
 
@@ -19,6 +21,7 @@ public class CheckTheAvPricesService : ICheckTheAvPricesService
     private readonly ILogger<CheckTheAvPricesService> _logger;
     private readonly HttpClient _httpClient;
     private readonly IOptions<RequestData> _requestData;
+    private List<WeaponObject> _weaponObjects;
 
 
     public CheckTheAvPricesService(ILogger<CheckTheAvPricesService> logger, HttpClient httpClient,IOptions<RequestData> requestData)
@@ -27,6 +30,7 @@ public class CheckTheAvPricesService : ICheckTheAvPricesService
         _logger = logger;
         _httpClient = new HttpClient(handler);
         _requestData = requestData;
+        _weaponObjects = new List<WeaponObject>();
     }
 
     public async Task<CheckPricesResult> CheckPricesAsync()
@@ -36,28 +40,24 @@ public class CheckTheAvPricesService : ICheckTheAvPricesService
         try
         {
             // Make HTTP POST request to fetch prices
-            var postResult = await MakeHttpPostRequestAsync();
-            
-            if (!postResult.Success)
+            var weapons = await FetchWeaponsAsync();
+            _logger.LogInformation($"Fetched {weapons.Count} weapons. Example:{weapons.FirstOrDefault().ToString()}");
+            if (weapons.Count == 0)
             {
                 return new CheckPricesResult
                 {
                     Success = false,
-                    Messages = new List<string> { $"HTTP request failed: {postResult.Message}" },
+                    Messages = new List<string> { $"HTTP request failed" },
                     CheckedAt = DateTime.Now
                 };
             }
-
             var result = new CheckPricesResult
-            {
-                Success = true,
-                Messages = new List<string> { "Price check completed successfully", postResult.Message },
-                ItemsChecked = 0,
-                DealsFound = 0,
-                CheckedAt = DateTime.Now
-            };
-
-            _logger.LogInformation($"Price check completed: {string.Join(", ", result.Messages)}");
+                {
+                    Success = true,
+                    Messages = new List<string> { $"HTTP request succeeded" },
+                    CheckedAt = DateTime.Now
+                };
+            _logger.LogInformation($"Price check completed");
             return result;
         }
         catch (Exception ex)
@@ -72,19 +72,22 @@ public class CheckTheAvPricesService : ICheckTheAvPricesService
         }
     }
 
-    private async Task<(bool Success, string Message)> MakeHttpPostRequestAsync()
+    private async Task<List<WeaponObject>> FetchWeaponsAsync()
     {
         try
         {
             // var url = Environment.GetEnvironmentVariable("PRICECHECK_API_URL") ?? "https://api.example.com/prices";
-            var builder = new UriBuilder(_requestData.Value.BaseUrl);
-            var query = HttpUtility.ParseQueryString(builder.Query);
+            var initialTransactionRequestUriBuilder = new UriBuilder(_requestData.Value.BaseUrl);
+            var batchRequestUriBuilder = new UriBuilder(_requestData.Value.BaseBatchUrl);
+            var query = HttpUtility.ParseQueryString(initialTransactionRequestUriBuilder.Query);
             query["batch"] = "1";
-            builder.Query = query.ToString();
-            builder.Port = -1; // Ensure default port is being added based on the schema (http/https)
+            initialTransactionRequestUriBuilder.Query = query.ToString();
+            initialTransactionRequestUriBuilder.Port = -1; // Ensure default port is being added based on the schema (http/https)
+            batchRequestUriBuilder.Query = query.ToString();
+            batchRequestUriBuilder.Port = -1; 
             // Create request with headers including cookie
             var itemCode = "sniper";
-            var weaponListRequest = new HttpRequestMessage(HttpMethod.Post, builder.ToString())
+            var weaponListRequest = new HttpRequestMessage(HttpMethod.Post, initialTransactionRequestUriBuilder.ToString())
             {
                 Content = new StringContent("{\"0\":{\"itemCode\":"
                 +$"\"{itemCode}\",\"limit\":12,\"direction\":\"forward\""
@@ -92,15 +95,7 @@ public class CheckTheAvPricesService : ICheckTheAvPricesService
                 +$"\"{itemCode}\",\"limit\":10,\"transactionType\":\"itemMarket\","
                 +"\"direction\":\"forward\"}}",
                 System.Text.Encoding.UTF8, "application/json")
-                // Content = new StringContent("{\"0\":"
-                // +"{\"itemCode\":"
-                // +$"\"{itemCode}\",\"limit\":{batchHardLimit},"
-                // +"\"minSkills\":{\"attack\":"
-                // +$"{itemAttackStat},\"criticalChance\":{itemCriticalChanceStat}"
-                // +"},\"direction\":\"forward\"}}", 
-                // System.Text.Encoding.UTF8, "application/json")
             };
-            Console.WriteLine($"Content: {weaponListRequest.Content.ReadAsStringAsync().Result}");
  
             // Add headers
             var headers = _requestData.Value.HttpHeadersDictionary;
@@ -115,21 +110,33 @@ public class CheckTheAvPricesService : ICheckTheAvPricesService
             }
             else _logger.LogWarning($"Error: No cookie found in secrets");
 
-
-            _logger.LogInformation($"Making POST request to {builder.ToString()}");
+            _logger.LogInformation($"Making initial fetch POST request to {initialTransactionRequestUriBuilder.ToString()}");
             var response = await _httpClient.SendAsync(weaponListRequest);
 
             if (response.IsSuccessStatusCode)
             {
-                var content = await response.Content.ReadFromJsonAsync<List<ItemMarketResponseModel>>();
-                Console.WriteLine(content?[0].Result.Data.ItemsModel[0]?.Item.Skills.Keys);
-                _logger.LogInformation($"HTTP request successful: {response.StatusCode}");
-                return (true, $"HTTP POST successful - Status: {response.StatusCode}");
+                _logger.LogInformation($"Initial weapon request successful: {response.StatusCode}");
+                var nextCursor = await ParseResponseContentFillWeaponCollectionAsync(response.Content);
+                while(nextCursor != null)
+                {
+                    var batchWeaponRequest = new HttpRequestMessage(HttpMethod.Post, batchRequestUriBuilder.ToString())
+                    {
+                        Content = new StringContent("{\"0\":{\"itemCode\":"
+                        +$"\"{itemCode}\",\"limit\":12,\"cursor\":\"{nextCursor}\","
+                        +"\"direction\":\"forward\"}}")
+                    };
+                    Console.WriteLine($"Content: {batchWeaponRequest.Content.ReadAsStringAsync().Result}");
+
+                    _logger.LogInformation($"Making batch fetch POST request to {batchRequestUriBuilder.ToString()} with cursor: {nextCursor}");
+                    var nextBatchResponse = await _httpClient.SendAsync(batchWeaponRequest);
+                    nextCursor = await ParseResponseContentFillWeaponCollectionAsync(nextBatchResponse.Content);
+                }
+                return _weaponObjects;
             }
             else
             {
-                _logger.LogWarning($"HTTP request failed with status code: {response.StatusCode}");
-                return (false, $"HTTP request returned status: {response.StatusCode}");
+                _logger.LogWarning($"Initial HTTP request failed with status code: {response.StatusCode}");
+                return _weaponObjects;
             }
             // _logger.LogInformation($"Simulate request to {builder.ToString()}");
             // await Task.Delay(50); // Simulate network delay
@@ -138,8 +145,28 @@ public class CheckTheAvPricesService : ICheckTheAvPricesService
         catch (Exception ex)
         {
             _logger.LogError($"HTTP request error: {ex.Message}");
-            return (false, $"HTTP request exception: {ex.Message}");
+            return _weaponObjects;
         }
-    }    
+    }
+    private async Task<string?> ParseResponseContentFillWeaponCollectionAsync(HttpContent content)    
+    {
+
+                var parsedContent = await content.ReadFromJsonAsync<List<ItemMarketResponseModel>>();
+                if(parsedContent == null)
+                {
+                    _logger.LogError("Failed to deserialize response content");
+                    throw new Exception("Failed to deserialize response content");
+                }
+                var data = parsedContent[0].Result.Data;
+                var weaponList = data.ItemsModel;
+                weaponList.ForEach(item => _weaponObjects.Add(new WeaponObject
+                {
+                    Type = Enum.Parse<WeaponType>(item.ItemCode, ignoreCase: true),
+                    Price = item.Price,
+                    Attack = item.Item.Skills["attack"],
+                    Crit = item.Item.Skills["criticalChance"]
+                }));
+        return data.NextCursor;
+    }
 }
 

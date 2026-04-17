@@ -1,3 +1,5 @@
+namespace TradeBot.Core.Objects;
+
 public enum WeaponType
 {
     Rifle,

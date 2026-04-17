@@ -21,5 +21,5 @@ public class ItemMarketDataContainerModel
     [JsonPropertyName("items")]
     public required List<TradeBot.Core.Models.ResponseWeaponItemModel> ItemsModel { get; set; }
     [JsonPropertyName("nextCursor")]
-    public required string NextCursor { get; set; }
+    public string? NextCursor { get; set; }
 }

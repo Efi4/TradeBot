@@ -12,5 +12,8 @@
         <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0" />
         <PackageReference Include="Azure.Storage.Blobs" Version="12.18.0" />
     </ItemGroup>
-
+    
+    <ItemGroup>
+        <ProjectReference Include="..\TradeBot.Core\TradeBot.Core.csproj" />
+    </ItemGroup>
 </Project>

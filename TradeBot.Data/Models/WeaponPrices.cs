@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using TradeBot.Core.Objects;
 
 namespace TradeBot.Data.Models;
 
