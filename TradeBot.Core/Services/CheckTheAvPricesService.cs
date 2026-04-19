@@ -112,7 +112,6 @@ public class CheckTheAvPricesService : ICheckTheAvPricesService
 
             _logger.LogInformation($"Making initial fetch POST request to {initialTransactionRequestUriBuilder.ToString()}");
             var response = await _httpClient.SendAsync(weaponListRequest);
-
             if (response.IsSuccessStatusCode)
             {
                 _logger.LogInformation($"Initial weapon request successful: {response.StatusCode}");
@@ -123,10 +122,19 @@ public class CheckTheAvPricesService : ICheckTheAvPricesService
                     {
                         Content = new StringContent("{\"0\":{\"itemCode\":"
                         +$"\"{itemCode}\",\"limit\":12,\"cursor\":\"{nextCursor}\","
-                        +"\"direction\":\"forward\"}}")
+                        +"\"direction\":\"forward\"}}",
+                        System.Text.Encoding.UTF8, "application/json")
                     };
                     Console.WriteLine($"Content: {batchWeaponRequest.Content.ReadAsStringAsync().Result}");
+                    foreach (var header in headers)
+                    {
+                        if(header.Key.Equals("%3Apath", StringComparison.OrdinalIgnoreCase))
+                        {
+                            batchWeaponRequest.Headers.Add(header.Key, "/trpc/itemOffer.getItemOffers?batch=1");
+                        }
+                        else if(!String.IsNullOrEmpty(header.Value))  batchWeaponRequest.Headers.Add(header.Key, header.Value);
 
+                    }
                     _logger.LogInformation($"Making batch fetch POST request to {batchRequestUriBuilder.ToString()} with cursor: {nextCursor}");
                     var nextBatchResponse = await _httpClient.SendAsync(batchWeaponRequest);
                     nextCursor = await ParseResponseContentFillWeaponCollectionAsync(nextBatchResponse.Content);
@@ -138,9 +146,6 @@ public class CheckTheAvPricesService : ICheckTheAvPricesService
                 _logger.LogWarning($"Initial HTTP request failed with status code: {response.StatusCode}");
                 return _weaponObjects;
             }
-            // _logger.LogInformation($"Simulate request to {builder.ToString()}");
-            // await Task.Delay(50); // Simulate network delay
-            // return (true, $"HTTP POST successful - Status: {HttpStatusCode.OK}");
         }
         catch (Exception ex)
         {
