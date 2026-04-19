@@ -51,3 +51,4 @@ All resources are hosted in Azure:
  - Function app is available by link [functionapp](tradebot-fecxhhevc8hfe7g5.westeurope-01.azurewebsites.net).
  - It uses storage account and azure sql database as data layer.
  - Keyvault is used for secrets management.
+ - Provisioning was done manually, since Terraform does not support free tier anymore.
