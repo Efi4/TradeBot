@@ -7,12 +7,15 @@ using Microsoft.VisualBasic;
 using TradeBot.Core.Interfaces;
 using TradeBot.Core.Models;
 using TradeBot.Base;
+using TradeBot.Base.Objects;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Http.Json;
 using System.Web;
 using TradeBot.Core.Objects;
 using System.Linq;
+using TradeBot.Data.Contexts;
+using TradeBot.Data.Models;
 
 namespace TradeBot.Core.Services;
 
@@ -21,15 +24,17 @@ public class CheckTheAvPricesService : ICheckTheAvPricesService
     private readonly ILogger<CheckTheAvPricesService> _logger;
     private readonly HttpClient _httpClient;
     private readonly IOptions<RequestData> _requestData;
+    private readonly TradingDbContext _dbContext;
     private List<WeaponObject> _weaponObjects;
 
 
-    public CheckTheAvPricesService(ILogger<CheckTheAvPricesService> logger, HttpClient httpClient,IOptions<RequestData> requestData)
+    public CheckTheAvPricesService(ILogger<CheckTheAvPricesService> logger, HttpClient httpClient, IOptions<RequestData> requestData, TradingDbContext dbContext)
     {
         var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate};
         _logger = logger;
         _httpClient = new HttpClient(handler);
         _requestData = requestData;
+        _dbContext = dbContext;
         _weaponObjects = new List<WeaponObject>();
     }
 
@@ -51,6 +56,10 @@ public class CheckTheAvPricesService : ICheckTheAvPricesService
                     CheckedAt = DateTime.Now
                 };
             }
+
+            // Insert weapons into database
+            await InsertWeaponsAsync(weapons);
+            
             var result = new CheckPricesResult
                 {
                     Success = true,
@@ -138,6 +147,7 @@ public class CheckTheAvPricesService : ICheckTheAvPricesService
                     _logger.LogInformation($"Making batch fetch POST request to {batchRequestUriBuilder.ToString()} with cursor: {nextCursor}");
                     var nextBatchResponse = await _httpClient.SendAsync(batchWeaponRequest);
                     nextCursor = await ParseResponseContentFillWeaponCollectionAsync(nextBatchResponse.Content);
+                    break; // Adding hard stop to minimize request numbers during testing.                
                 }
                 return _weaponObjects;
             }
@@ -172,6 +182,33 @@ public class CheckTheAvPricesService : ICheckTheAvPricesService
                     Crit = item.Item.Skills["criticalChance"]
                 }));
         return data.NextCursor;
+    }
+
+    private async Task InsertWeaponsAsync(List<WeaponObject> weapons)
+    {
+        try
+        {
+            foreach (var weapon in weapons)
+            {
+                var weaponEntity = new Weapon
+                {
+                    Type = weapon.Type,
+                    Price = weapon.Price,
+                    Attack = weapon.Attack,
+                    Crit = weapon.Crit,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _dbContext.Weapons.Add(weaponEntity);
+            }
+
+            await _dbContext.SaveChangesAsync();
+            _logger.LogInformation($"Successfully inserted {weapons.Count} weapons into database");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error inserting weapons into database: {ex.Message}");
+        }
     }
 }
 

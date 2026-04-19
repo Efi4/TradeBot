@@ -1,4 +1,4 @@
-namespace TradeBot.Core.Objects;
+namespace TradeBot.Base.Objects;
 
 public enum WeaponType
 {

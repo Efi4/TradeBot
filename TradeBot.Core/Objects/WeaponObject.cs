@@ -1,3 +1,5 @@
+using TradeBot.Base.Objects;
+
 namespace TradeBot.Core.Objects;
 
 public class WeaponObject

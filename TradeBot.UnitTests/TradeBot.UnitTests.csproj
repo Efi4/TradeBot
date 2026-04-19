@@ -17,6 +17,7 @@
     <ItemGroup>
         <ProjectReference Include="..\TradeBot.Core\TradeBot.Core.csproj" />
         <ProjectReference Include="..\TradeBot.Base\TradeBot.Base.csproj" />
+        <ProjectReference Include="..\TradeBot.Base\TradeBot.Data.csproj" />
     </ItemGroup>
 
 </Project>

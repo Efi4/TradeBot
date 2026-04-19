@@ -10,6 +10,7 @@ using NUnit.Framework;
 using TradeBot.Core.Interfaces;
 using TradeBot.Core.Models;
 using TradeBot.Core.Services;
+using TradeBot.Data.Contexts;
 
 namespace TradeBot.UnitTests.Services
 {
@@ -18,6 +19,7 @@ namespace TradeBot.UnitTests.Services
     {
         private Mock<ILogger<CheckTheAvPricesService>> _mockLogger = null!;
         private Mock<IOptions<RequestData>> _mockHttpHeadersOptions = null!;
+        private Mock<TradingDbContext> _dbContextMock = null!;
         private CheckTheAvPricesService _sut = null!;
 
         [OneTimeSetUp]
@@ -29,7 +31,7 @@ namespace TradeBot.UnitTests.Services
             var httpClient = new HttpClient();
             
             _mockHttpHeadersOptions = new Mock<IOptions<RequestData>>();
-
+            _dbContextMock = new Mock<TradingDbContext>();
             // Setup default HttpHeaders
             var httpHeaders = new RequestData
             {
@@ -46,7 +48,8 @@ namespace TradeBot.UnitTests.Services
             _sut = new CheckTheAvPricesService(
                 _mockLogger.Object,
                 httpClient,
-                _mockHttpHeadersOptions.Object
+                _mockHttpHeadersOptions.Object,
+                _dbContextMock.Object
             );
         }
 
