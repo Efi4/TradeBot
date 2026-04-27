@@ -10,13 +10,16 @@ namespace AzureFunctionApp.Functions
     public class HttpTriggerFunction
     {
         private readonly ILogger<HttpTriggerFunction> _logger;
-        private readonly ICheckTheAvPricesService _avpriceService;
+        private readonly ICheckThePricesService _priceService;
+        private readonly ICalculateAveragePriceService _averagePriceService;
         public HttpTriggerFunction(
             ILogger<HttpTriggerFunction> logger, 
-            ICheckTheAvPricesService avpriceService)
+            ICheckThePricesService priceService,
+            ICalculateAveragePriceService averagePriceService)
         {
             _logger = logger;
-            _avpriceService = avpriceService;
+            _priceService = priceService;
+            _averagePriceService = averagePriceService;
         }
 
         [Function("HttpTriggerFunction")]
@@ -25,7 +28,8 @@ namespace AzureFunctionApp.Functions
         {
             _logger.LogInformation("HTTP trigger function processed a request.");
 
-            var result = await _avpriceService.CheckPricesAsync();
+            // var result = await _priceService.CheckPricesAsync();
+            var averagePriceResult = await _averagePriceService.CalculateAveragePriceAsync();
             var response = req.CreateResponse(HttpStatusCode.OK);
             return response;
         }
