@@ -24,18 +24,18 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
 {
     private readonly ILogger<CalculateAveragePriceService> _logger;
     private readonly TradingDbContext _dbContext;
-    private List<WeaponObject> _weaponObjects;
+    private readonly IOptions<StatRangeOptions> _statRangeOptions;
 
-    public CalculateAveragePriceService(ILogger<CalculateAveragePriceService> logger, TradingDbContext dbContext)
+    public CalculateAveragePriceService(ILogger<CalculateAveragePriceService> logger, TradingDbContext dbContext, IOptions<StatRangeOptions> statRangeOptions)
     {
         _logger = logger;
         _dbContext = dbContext;
-        _weaponObjects = new List<WeaponObject>();
+        _statRangeOptions = statRangeOptions;
     }
 
-    public async Task<bool> CalculateAveragePriceAsync()
+    public async Task<bool> CalculateAverageWeaponPricesAsync()
     {
-        _logger.LogInformation("Starting to calculate average price...");
+        _logger.LogInformation("Starting to calculate average weapon prices...");
         try
         {
             var weaponList =_dbContext.Weapons.ToList();
@@ -69,6 +69,26 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
             await _dbContext.SaveChangesAsync();
             _logger.LogInformation("Prices: " + string.Join(" '\n'", _dbContext.WeaponPrices.ToList().Select(wp => $"Attack: {wp.Attack}, Crit: {wp.Crit}, Price: {wp.Price}")));
         }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An error occurred while calculating average price.");
+            return false;
+        }
+        return true;
+    }
+
+    public async Task<bool> CalculateAverageArmorPricesAsync()
+    {
+        _logger.LogInformation("Starting to calculate average armor prices...");
+        try
+        {
+            var armorList =_dbContext.ArmorPrices.ToList();
+            foreach(var armorType in Enum.GetValues<ArmorType>())
+            {
+
+            }
+            var averagePriceList = new List<ArmorPrice>();
+         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An error occurred while calculating average price.");

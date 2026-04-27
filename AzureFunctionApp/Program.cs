@@ -33,7 +33,9 @@ var host = new HostBuilder()
         services.AddHttpClient<ICheckThePricesService, CheckThePricesService>();
         services.AddSingleton<ICalculateAveragePriceService, CalculateAveragePriceService>();
         // Bind HttpHeaders configuration
-        services.Configure<RequestData>(context.Configuration.GetSection("RequestData"));
+        services.Configure<RequestDataOptions>(context.Configuration.GetSection("RequestDataOptions"));
+        services.Configure<StatRangeOptions>(context.Configuration.GetSection("StatRangeOptions"));
+
     })
     .ConfigureAppConfiguration((context, builder) =>
     {

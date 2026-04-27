@@ -18,7 +18,7 @@ namespace TradeBot.UnitTests.Services
     public class CheckTheAvPricesServiceTests
     {
         private Mock<ILogger<CheckThePricesService>> _mockLogger = null!;
-        private Mock<IOptions<RequestData>> _mockHttpHeadersOptions = null!;
+        private Mock<IOptions<RequestDataOptions>> _mockHttpHeadersOptions = null!;
         private Mock<TradingDbContext> _dbContextMock = null!;
         private CheckThePricesService _sut = null!;
 
@@ -30,10 +30,10 @@ namespace TradeBot.UnitTests.Services
             // Create a real HttpClient for testing (since mocking HttpClient is complex)
             var httpClient = new HttpClient();
             
-            _mockHttpHeadersOptions = new Mock<IOptions<RequestData>>();
+            _mockHttpHeadersOptions = new Mock<IOptions<RequestDataOptions>>();
             _dbContextMock = new Mock<TradingDbContext>();
             // Setup default HttpHeaders
-            var httpHeaders = new RequestData
+            var httpHeaders = new RequestDataOptions
             {
                 BaseBatchUrl = "http://localhost:7071",
                 BaseUrl = "http://localhost:7071",

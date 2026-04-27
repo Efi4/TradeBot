@@ -7,6 +7,7 @@ namespace TradeBot.Core.Interfaces
 {
     public interface ICalculateAveragePriceService
     {
-        Task<bool> CalculateAveragePriceAsync();
+        Task<bool> CalculateAverageWeaponPricesAsync();
+        Task<bool> CalculateAverageArmorPricesAsync();
     }
 }
