@@ -5,18 +5,21 @@ using TradeBot.Base.Objects;
 namespace TradeBot.Data.Models;
 
 /// <summary>
-/// Armor prices entity representing user armor holdings
+/// Weapon prices entity representing user weapon holdings
 /// </summary>
-public class ArmorPrices
+public class WeaponPrice
 {
     [Key]
-    public ArmorType Type { get; set; }
+    public WeaponType Type { get; set; }
 
     [Required]
     public decimal Price { get; set; }
 
-    [Required]
-    public int Stat { get; set; }
+    [Key]
+    public int Attack { get; set; }
+
+    [Key]
+    public int Crit { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
