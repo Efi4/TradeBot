@@ -19,16 +19,16 @@ using TradeBot.Data.Models;
 
 namespace TradeBot.Core.Services;
 
-public class CheckTheAvPricesService : ICheckTheAvPricesService
+public class CheckThePricesService : ICheckThePricesService
 {
-    private readonly ILogger<CheckTheAvPricesService> _logger;
+    private readonly ILogger<CheckThePricesService> _logger;
     private readonly HttpClient _httpClient;
     private readonly IOptions<RequestData> _requestData;
     private readonly TradingDbContext _dbContext;
     private List<WeaponObject> _weaponObjects;
 
 
-    public CheckTheAvPricesService(ILogger<CheckTheAvPricesService> logger, HttpClient httpClient, IOptions<RequestData> requestData, TradingDbContext dbContext)
+    public CheckThePricesService(ILogger<CheckThePricesService> logger, HttpClient httpClient, IOptions<RequestData> requestData, TradingDbContext dbContext)
     {
         var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate};
         _logger = logger;

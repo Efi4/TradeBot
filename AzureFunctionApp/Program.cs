@@ -29,9 +29,9 @@ var host = new HostBuilder()
         
         services.AddTradingDatabase(connectionString);
 
-        // Register HTTP client with CheckTheAvPricesService
-        services.AddHttpClient<ICheckTheAvPricesService, CheckTheAvPricesService>();
-
+        // Register HTTP client with CheckThePricesService
+        services.AddHttpClient<ICheckThePricesService, CheckThePricesService>();
+        services.AddSingleton<ICalculateAveragePriceService, CalculateAveragePriceService>();
         // Bind HttpHeaders configuration
         services.Configure<RequestData>(context.Configuration.GetSection("RequestData"));
     })

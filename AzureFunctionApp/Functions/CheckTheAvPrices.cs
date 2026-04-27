@@ -9,12 +9,12 @@ namespace AzureFunctionApp.Functions
     public class CheckTheAvPrices
     {
         private readonly ILogger<CheckTheAvPrices> _logger;
-        private readonly ICheckTheAvPricesService _avpriceService;
+        private readonly ICheckThePricesService _priceService;
 
-        public CheckTheAvPrices(ILogger<CheckTheAvPrices> logger, ICheckTheAvPricesService avpriceService)
+        public CheckTheAvPrices(ILogger<CheckTheAvPrices> logger, ICheckThePricesService avpriceService)
         {
             _logger = logger;
-            _avpriceService = avpriceService;
+            _priceService = avpriceService;
         }
 
         [Function("CheckTheAvPrices")]
@@ -25,7 +25,7 @@ namespace AzureFunctionApp.Functions
             
             try
             {
-                var result = await _avpriceService.CheckPricesAsync();
+                var result = await _priceService.CheckPricesAsync();
                 
                 _logger.LogInformation($"Price check result: {string.Join(", ", result.Messages)}");
                 _logger.LogInformation($"Items checked: {result.ItemsChecked}, Deals found: {result.DealsFound}");

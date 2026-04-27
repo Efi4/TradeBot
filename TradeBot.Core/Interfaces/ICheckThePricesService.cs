@@ -5,7 +5,7 @@ using TradeBot.Core.Models;
 
 namespace TradeBot.Core.Interfaces
 {
-    public interface ICheckTheAvPricesService
+    public interface ICheckThePricesService
     {
         Task<CheckPricesResult> CheckPricesAsync();
     }
