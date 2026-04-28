@@ -25,7 +25,7 @@ namespace AzureFunctionApp.Functions
             
             try
             {
-                var result = await _priceService.CheckPricesAsync();
+                var result = await _priceService.CheckWeaponPricesAsync();
                 
                 _logger.LogInformation($"Price check result: {string.Join(", ", result.Messages)}");
                 _logger.LogInformation($"Items checked: {result.ItemsChecked}, Deals found: {result.DealsFound}");

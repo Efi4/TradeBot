@@ -54,10 +54,10 @@ namespace TradeBot.UnitTests.Services
         }
 
         [Test]
-         public async Task CheckPricesAsync_ShouldReturnSuccessResult()
+         public async Task CheckWeaponPricesAsync_ShouldReturnSuccessResult()
         {
             // Act
-            var result = await _sut.CheckPricesAsync();
+            var result = await _sut.CheckWeaponPricesAsync();
 
             // Assert
             result.Should().NotBeNull();
@@ -67,10 +67,10 @@ namespace TradeBot.UnitTests.Services
         }
 
         [Test]
-        public async Task CheckPricesAsync_ShouldLogInformationMessage()
+        public async Task CheckWeaponPricesAsync_ShouldLogInformationMessage()
         {
             // Act
-            await _sut.CheckPricesAsync();
+            await _sut.CheckWeaponPricesAsync();
 
             // Assert
             _mockLogger.Verify(
@@ -84,10 +84,10 @@ namespace TradeBot.UnitTests.Services
         }
 
         [Test]
-        public async Task CheckPricesAsync_ShouldHaveCorrectItemsAndDealsCount()
+        public async Task CheckWeaponPricesAsync_ShouldHaveCorrectItemsAndDealsCount()
         {
             // Act
-            var result = await _sut.CheckPricesAsync();
+            var result = await _sut.CheckWeaponPricesAsync();
 
             // Assert
             result.ItemsChecked.Should().Be(0);
@@ -95,13 +95,13 @@ namespace TradeBot.UnitTests.Services
         }
 
         [Test]
-        public async Task CheckPricesAsync_ShouldHandleExceptionGracefully()
+        public async Task CheckWeaponPricesAsync_ShouldHandleExceptionGracefully()
         {
             // Arrange
             Environment.SetEnvironmentVariable("PRICECHECK_API_URL", "invalid://url");
 
             // Act
-            var result = await _sut.CheckPricesAsync();
+            var result = await _sut.CheckWeaponPricesAsync();
 
             // Assert
             result.Should().NotBeNull();
@@ -109,10 +109,10 @@ namespace TradeBot.UnitTests.Services
         }
 
         [Test]
-        public async Task CheckPricesAsync_ResultShouldContainHttpStatusMessage()
+        public async Task CheckWeaponPricesAsync_ResultShouldContainHttpStatusMessage()
         {
             // Act
-            var result = await _sut.CheckPricesAsync();
+            var result = await _sut.CheckWeaponPricesAsync();
 
             // Assert
             result.Messages.Should().Contain(msg => msg.Contains("OK"));

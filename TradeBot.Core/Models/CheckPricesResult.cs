@@ -8,5 +8,5 @@ public class CheckPricesResult
     public List<string> Messages { get; set; } = new List<string>();
     public int ItemsChecked { get; set; }
     public int DealsFound { get; set; }
-    public DateTime CheckedAt { get; set; }
+    public DateTime CheckedAt { get; set; } = DateTime.Now;
 }
