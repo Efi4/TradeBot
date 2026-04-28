@@ -15,6 +15,7 @@ public class TradingDbContext : DbContext
     public DbSet<WeaponPrice> WeaponPrices { get; set; } = null!;
     public DbSet<ArmorPrice> ArmorPrices { get; set; } = null!;
     public DbSet<Weapon> Weapons { get; set; } = null!;
+    public DbSet<Armor> Armors { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -49,6 +50,16 @@ public class TradingDbContext : DbContext
             entity.Property(e => e.Price).HasPrecision(10, 5);
             entity.Property(e => e.Attack).IsRequired();
             entity.Property(e => e.Crit).IsRequired();
+        });
+        // Armors table configuration
+        modelBuilder.Entity<Armor>(entity =>
+        {
+            entity.ToTable("Armors");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedOnAdd();
+            entity.Property(e => e.Type).IsRequired();
+            entity.Property(e => e.Price).HasPrecision(10, 5);
+            entity.Property(e => e.Stat).IsRequired();
         });
     }
 }
