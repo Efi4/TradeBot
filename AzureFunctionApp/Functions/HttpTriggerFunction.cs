@@ -28,9 +28,9 @@ namespace AzureFunctionApp.Functions
         {
             _logger.LogInformation("HTTP trigger function processed a request.");
 
-            // var result = await _priceService.CheckWeaponPricesAsync();
+             var result = await _priceService.CheckPricesAsync();
             // var averagePriceResult = await _averagePriceService.CalculateAverageWeaponPricesAsync();
-            var averagePriceResult = await _averagePriceService.CalculateAverageArmorPricesAsync();
+            // var averagePriceResult = await _averagePriceService.CalculateAverageArmorPricesAsync();
             var response = req.CreateResponse(HttpStatusCode.OK);
             return response;
         }

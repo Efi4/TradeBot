@@ -7,6 +7,6 @@ namespace TradeBot.Core.Interfaces
 {
     public interface ICheckThePricesService
     {
-        Task<CheckPricesResult> CheckWeaponPricesAsync();
+        Task<CheckPricesResult> CheckPricesAsync();
     }
 }

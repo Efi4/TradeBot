@@ -17,6 +17,7 @@ using System.Linq;
 using TradeBot.Data.Contexts;
 using TradeBot.Data.Models;
 using System.Net.Http.Headers;
+using Microsoft.EntityFrameworkCore;
 
 namespace TradeBot.Core.Services;
 
@@ -47,21 +48,26 @@ public class CheckThePricesService : ICheckThePricesService
         _headers = requestData.Value.HttpHeadersDictionary;
     }
 
-    public async Task<CheckPricesResult> CheckWeaponPricesAsync()
+    public async Task<CheckPricesResult> CheckPricesAsync()
     {
+        _logger.LogInformation("Clearing equipment tables.");
+        await ClearEquipmentTables();
+
+        PrepareQuerryStringParameters();
+
         _logger.LogInformation("Starting to check weapon prices...");
         var result = new CheckPricesResult();
         try
         {            
             foreach(var weaponType in Enum.GetValues<WeaponType>())
             {
-                if (weaponType is not WeaponType.Tank) continue; //Add for testing purposes
+                if (weaponType is not WeaponType.Tank) {continue;} //Add for testing purposes
                 var weapons = await FetchWeaponsAsync(weaponType);
                 result.Messages.Add($"{weaponType} weapons were checked.");
                 _weapons.AddRange(weapons);
             }
             result.DealsFound = _dealsFound;
-
+            _logger.LogInformation($"Found deals:{_dealsFound}");
             // Insert weapons into database
             await InsertWeaponsAsync(_weapons);
             result.Messages.Add($"{_weapons.Count} weapons were added in database.");
@@ -73,7 +79,7 @@ public class CheckThePricesService : ICheckThePricesService
         catch (Exception ex)
         {
             _logger.LogError($"Error checking weapon prices: {ex.Message}");
-            result.Messages.Add($"Exception {ex.Message} was cought during execution of {nameof(CheckWeaponPricesAsync)}");
+            result.Messages.Add($"Exception {ex.Message} was cought during execution of {nameof(CheckPricesAsync)}");
             result.Success = false;
             return result;
         }
@@ -84,10 +90,8 @@ public class CheckThePricesService : ICheckThePricesService
         try
         {
             var itemCode = weaponType.ToString().ToLower();
-            
-            var weaponListRequest = await PrepareRequest(itemCode);
-
-            _logger.LogInformation($"Making initial fetch POST request to {weaponListRequest.RequestUri!.AbsolutePath}");
+            var weaponListRequest = PrepareRequest(itemCode);
+            _logger.LogInformation($"Making initial fetch POST request to {weaponListRequest.RequestUri}");
             var initialResponse = await _httpClient.SendAsync(weaponListRequest);
             
             if (initialResponse.IsSuccessStatusCode)
@@ -97,7 +101,7 @@ public class CheckThePricesService : ICheckThePricesService
                 while(nextCursor != null)
                 {
                     var batchWeaponRequest = PrepareBatchRequest(itemCode, nextCursor);
-                    _logger.LogInformation($"Making batch fetch POST request to {batchWeaponRequest.RequestUri!.AbsolutePath} with cursor: {nextCursor}");
+                    _logger.LogInformation($"Making batch fetch POST request to {batchWeaponRequest.RequestUri} with cursor: {nextCursor}");
                     var nextBatchResponse = await _httpClient.SendAsync(batchWeaponRequest);
                     nextCursor = await ParseResponseContentFillWeaponCollectionAsync(nextBatchResponse.Content);
                 }
@@ -115,32 +119,31 @@ public class CheckThePricesService : ICheckThePricesService
             return _weapons;
         }
     }
-    private async Task<HttpRequestMessage> PrepareRequest(string itemCode)
+
+    private HttpRequestMessage PrepareRequest(string itemCode)
     {
-            var weaponListRequest = new HttpRequestMessage(HttpMethod.Post, _initialTransactionRequestUriBuilder.ToString())
-            {
-                Content = new StringContent("{\"0\":{\"itemCode\":"
-                +$"\"{itemCode}\",\"limit\":12,\"direction\":\"forward\""
-                +"},\"1\":{\"itemCode\":"
-                +$"\"{itemCode}\",\"limit\":10,\"transactionType\":\"itemMarket\","
-                +"\"direction\":\"forward\"}}",
-                System.Text.Encoding.UTF8, "application/json")
-            };
- 
-            // Add headers
+        var weaponListRequest = new HttpRequestMessage(HttpMethod.Post, _initialTransactionRequestUriBuilder.ToString())
+        {
+            Content = new StringContent("{\"0\":{\"itemCode\":"
+            +$"\"{itemCode}\",\"limit\":12,\"direction\":\"forward\""
+            +"},\"1\":{\"itemCode\":"
+            +$"\"{itemCode}\",\"limit\":10,\"transactionType\":\"itemMarket\","
+            +"\"direction\":\"forward\"}}",
+            System.Text.Encoding.UTF8, "application/json")
+        };
 
-            foreach (var header in _headers)
-            {
-                if(!String.IsNullOrEmpty(header.Value))  weaponListRequest.Headers.Add(header.Key, header.Value);
-            }
-            _headers.TryGetValue("Cookie", out var cookieHeader);
-            if (!string.IsNullOrEmpty(cookieHeader))
-            {
-                _logger.LogInformation($"Found cookie in secrets, starts with: {cookieHeader.Substring(0, 10)}...");
-            }
-            else _logger.LogWarning($"Error: No cookie found in secrets");
+        foreach (var header in _headers)
+        {
+            if(!String.IsNullOrEmpty(header.Value))  weaponListRequest.Headers.Add(header.Key, header.Value);
+        }
+        _headers.TryGetValue("Cookie", out var cookieHeader);
+        if (!string.IsNullOrEmpty(cookieHeader))
+        {
+            _logger.LogInformation($"Found cookie in secrets, starts with: {cookieHeader.Substring(0, 10)}...");
+        }
+        else _logger.LogWarning($"Error: No cookie found in secrets");
 
-            return weaponListRequest;
+        return weaponListRequest;
     }
 
     private HttpRequestMessage PrepareBatchRequest(string itemCode, string nextCursor)
@@ -206,6 +209,33 @@ public class CheckThePricesService : ICheckThePricesService
         catch (Exception ex)
         {
             _logger.LogError($"Error inserting weapons into database: {ex.Message}");
+        }
+    }
+
+    private async Task InsertArmorsAsync(List<Armor> armors)
+    {
+        try
+        {
+            await _dbContext.Armors.AddRangeAsync(armors);
+            await _dbContext.SaveChangesAsync();
+            _logger.LogInformation($"Successfully inserted {armors.Count} armors into database");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error inserting armors into database: {ex.Message}");
+        }
+    }
+
+    private async Task ClearEquipmentTables()
+    {
+        try
+        {
+            await _dbContext.Armors.ExecuteDeleteAsync();
+            await _dbContext.Weapons.ExecuteDeleteAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error clearing equipment tables: {ex.Message}");
         }
     }
 }
