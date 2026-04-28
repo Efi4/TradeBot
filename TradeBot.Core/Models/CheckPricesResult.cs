@@ -9,4 +9,13 @@ public class CheckPricesResult
     public int ItemsChecked { get; set; }
     public int DealsFound { get; set; }
     public DateTime CheckedAt { get; set; } = DateTime.Now;
+
+    public override string ToString()
+    {
+        return $"Success: {Success},\n" +
+               $"ItemsChecked: {ItemsChecked},\n" +
+               $"DealsFound: {DealsFound},\n" +
+               $"CheckedAt: {CheckedAt:g},\n" +
+               $"Messages: [{string.Join(",\n", Messages)}]";
+    }
 }

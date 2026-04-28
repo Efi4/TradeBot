@@ -15,6 +15,7 @@ using TradeBot.Core.Models;
 
 // Load environment variables from .env file
 var environment = Environment.GetEnvironmentVariable("AZURE_FUNCTIONS_ENVIRONMENT");
+Console.WriteLine($"Function app environment is {environment}.");
 if(environment == "Development")
 {
     EnvironmentConfiguration.LoadEnvironment();

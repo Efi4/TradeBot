@@ -55,74 +55,138 @@ public class CheckThePricesService : ICheckThePricesService
 
         PrepareQuerryStringParameters();
 
-        _logger.LogInformation("Starting to check weapon prices...");
+        _logger.LogInformation("Starting to check prices...");
         var result = new CheckPricesResult();
         try
         {            
             foreach(var weaponType in Enum.GetValues<WeaponType>())
             {
                 if (weaponType is not WeaponType.Tank) {continue;} //Add for testing purposes
-                var weapons = await FetchWeaponsAsync(weaponType);
-                result.Messages.Add($"{weaponType} weapons were checked.");
-                _weapons.AddRange(weapons);
+                var isSuccessful = await FetchAndStoreWeaponsAsync(weaponType);
+                if(isSuccessful) 
+                {
+                    result.Messages.Add($"{weaponType} weapons were checked.");
+                }
             }
-            result.DealsFound = _dealsFound;
-            _logger.LogInformation($"Found deals:{_dealsFound}");
-            // Insert weapons into database
+            // Insert weapons found into database
             await InsertWeaponsAsync(_weapons);
             result.Messages.Add($"{_weapons.Count} weapons were added in database.");
-            result.Success = true;
+            foreach(var armorType in Enum.GetValues<ArmorType>())
+            {
+                if (armorType is not ArmorType.Helmet4) {continue;} //Add for testing purposes
+                var isSuccessful = await FetchAndStoreArmorsAsync(armorType);
+                if(isSuccessful) 
+                {
+                    result.Messages.Add($"{armorType} armor were checked.");
+                }
+            }
+            // Insert armor found into database
+            await InsertArmorsAsync(_armors);
+            result.Messages.Add($"{_armors.Count} armor items were added in database.");
 
+            result.DealsFound = _dealsFound;
+            _logger.LogInformation($"Found deals:{_dealsFound}");            
+
+            result.Success = true;
             _logger.LogInformation($"Price check completed");
             return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error checking weapon prices: {ex.Message}");
+            _logger.LogError($"Error checking prices: {ex.Message}");
             result.Messages.Add($"Exception {ex.Message} was cought during execution of {nameof(CheckPricesAsync)}");
             result.Success = false;
             return result;
         }
     }
 
-    private async Task<List<Weapon>> FetchWeaponsAsync(WeaponType weaponType)
+    private async Task<bool> FetchAndStoreWeaponsAsync(WeaponType weaponType)
     {
         try
         {
             var itemCode = weaponType.ToString().ToLower();
             var weaponListRequest = PrepareRequest(itemCode);
-            _logger.LogInformation($"Making initial fetch POST request to {weaponListRequest.RequestUri}");
+            _logger.LogInformation($"Making initial fetch POST request to {weaponListRequest.RequestUri} to get {itemCode} weapon.");
             var initialResponse = await _httpClient.SendAsync(weaponListRequest);
             
-            if (initialResponse.IsSuccessStatusCode)
+            if (!initialResponse.IsSuccessStatusCode)
             {
-                _logger.LogInformation($"Initial weapon request successful: {initialResponse.StatusCode}");
-                var nextCursor = await ParseResponseContentFillWeaponCollectionAsync(initialResponse.Content);
-                while(nextCursor != null)
-                {
-                    var batchWeaponRequest = PrepareBatchRequest(itemCode, nextCursor);
-                    _logger.LogInformation($"Making batch fetch POST request to {batchWeaponRequest.RequestUri} with cursor: {nextCursor}");
-                    var nextBatchResponse = await _httpClient.SendAsync(batchWeaponRequest);
-                    nextCursor = await ParseResponseContentFillWeaponCollectionAsync(nextBatchResponse.Content);
-                }
-                return _weapons;
+                _logger.LogWarning($"Initial weapon fetch request failed with status code: {initialResponse.StatusCode}");
+                return false;
             }
-            else
+
+            _logger.LogInformation($"Initial weapon request successful: {initialResponse.StatusCode}");
+            var initialData = await ParseResponseContent(initialResponse.Content);
+            
+            FillWeaponCollectionAsync(initialData.ItemsModel);
+            var nextCursor = initialData.NextCursor;
+
+            while(nextCursor != null)
             {
-                _logger.LogWarning($"Initial HTTP request failed with status code: {initialResponse.StatusCode}");
-                return _weapons;
+                var batchWeaponRequest = PrepareBatchRequest(itemCode, nextCursor);
+                _logger.LogInformation($"Making weapon batch fetch POST request to {batchWeaponRequest.RequestUri} with cursor: {nextCursor}");
+                
+                var nextBatchResponse = await _httpClient.SendAsync(batchWeaponRequest);
+                
+                var batchData = await ParseResponseContent(nextBatchResponse.Content);
+                
+                FillWeaponCollectionAsync(batchData.ItemsModel);
+                nextCursor = batchData.NextCursor;
             }
         }
         catch (Exception ex)
         {
             _logger.LogError($"Fetch of weapons resulted in error: {ex.Message}");
-            return _weapons;
         }
+
+        return true;
+    }
+
+    private async Task<bool> FetchAndStoreArmorsAsync(ArmorType armorType)
+    {
+        try
+        {
+            var itemCode = armorType.ToString().ToLower();
+            var armorListRequest = PrepareRequest(itemCode);
+            _logger.LogInformation($"Making initial fetch POST request to {armorListRequest.RequestUri} to get {itemCode} armor items.");
+            var initialResponse = await _httpClient.SendAsync(armorListRequest);
+            
+            if (!initialResponse.IsSuccessStatusCode)
+            {
+                _logger.LogWarning($"Initial armor fetch request failed with status code: {initialResponse.StatusCode}");
+                return false;
+            }
+
+            _logger.LogInformation($"Initial armor request successful: {initialResponse.StatusCode}");
+            var initialData = await ParseResponseContent(initialResponse.Content);
+            
+            FillArmorCollectionAsync(initialData.ItemsModel);
+            var nextCursor = initialData.NextCursor;
+
+            while(nextCursor != null)
+            {
+                var batchArmorRequest = PrepareBatchRequest(itemCode, nextCursor);
+                _logger.LogInformation($"Making armor batch fetch POST request to {batchArmorRequest.RequestUri} with cursor: {nextCursor}");
+                
+                var nextBatchResponse = await _httpClient.SendAsync(batchArmorRequest);
+                
+                var batchData = await ParseResponseContent(nextBatchResponse.Content);
+                
+                FillArmorCollectionAsync(batchData.ItemsModel);
+                nextCursor = batchData.NextCursor;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Fetch of armors resulted in error: {ex.Message}");
+        }
+
+        return true;
     }
 
     private HttpRequestMessage PrepareRequest(string itemCode)
     {
-        var weaponListRequest = new HttpRequestMessage(HttpMethod.Post, _initialTransactionRequestUriBuilder.ToString())
+        var equipmentListRequest = new HttpRequestMessage(HttpMethod.Post, _initialTransactionRequestUriBuilder.ToString())
         {
             Content = new StringContent("{\"0\":{\"itemCode\":"
             +$"\"{itemCode}\",\"limit\":12,\"direction\":\"forward\""
@@ -134,7 +198,7 @@ public class CheckThePricesService : ICheckThePricesService
 
         foreach (var header in _headers)
         {
-            if(!String.IsNullOrEmpty(header.Value))  weaponListRequest.Headers.Add(header.Key, header.Value);
+            if(!String.IsNullOrEmpty(header.Value))  equipmentListRequest.Headers.Add(header.Key, header.Value);
         }
         _headers.TryGetValue("Cookie", out var cookieHeader);
         if (!string.IsNullOrEmpty(cookieHeader))
@@ -143,7 +207,7 @@ public class CheckThePricesService : ICheckThePricesService
         }
         else _logger.LogWarning($"Error: No cookie found in secrets");
 
-        return weaponListRequest;
+        return equipmentListRequest;
     }
 
     private HttpRequestMessage PrepareBatchRequest(string itemCode, string nextCursor)
@@ -155,7 +219,7 @@ public class CheckThePricesService : ICheckThePricesService
             +"\"direction\":\"forward\"}}",
             System.Text.Encoding.UTF8, "application/json")
         };
-        Console.WriteLine($"Content: {batchWeaponRequest.Content.ReadAsStringAsync().Result}");
+        
         foreach (var header in _headers)
         {
             if(header.Key.Equals("%3Apath", StringComparison.OrdinalIgnoreCase))
@@ -177,25 +241,37 @@ public class CheckThePricesService : ICheckThePricesService
             _batchRequestUriBuilder.Port = -1; 
     }
 
-    private async Task<string?> ParseResponseContentFillWeaponCollectionAsync(HttpContent content)    
+    private void FillWeaponCollectionAsync(List<EquipmentResponseModel> weaponList)
     {
+        weaponList.ForEach(item => _weapons.Add(new Weapon
+        {
+            Type = Enum.Parse<WeaponType>(item.ItemCode, ignoreCase: true),
+            Price = item.Price,
+            Attack = item.Item.Skills["attack"],
+            Crit = item.Item.Skills["criticalChance"]
+        }));
+    }
 
-                var parsedContent = await content.ReadFromJsonAsync<List<ItemMarketResponseModel>>();
-                if(parsedContent == null)
-                {
-                    _logger.LogError("Failed to deserialize response content");
-                    throw new Exception("Failed to deserialize response content");
-                }
-                var data = parsedContent[0].Result.Data;
-                var weaponList = data.ItemsModel;
-                weaponList.ForEach(item => _weapons.Add(new Weapon
-                {
-                    Type = Enum.Parse<WeaponType>(item.ItemCode, ignoreCase: true),
-                    Price = item.Price,
-                    Attack = item.Item.Skills["attack"],
-                    Crit = item.Item.Skills["criticalChance"]
-                }));
-        return data.NextCursor;
+    private void FillArmorCollectionAsync(List<EquipmentResponseModel> armorList)    
+    {
+        armorList.ForEach(item => _armors.Add(new Armor
+        {
+            Type = Enum.Parse<ArmorType>(item.ItemCode, ignoreCase: true),
+            Price = item.Price,
+            Stat = item.Item.Skills.First().Value          
+        }));
+    }
+
+    private async Task<ItemMarketDataContainerModel> ParseResponseContent(HttpContent content)
+    {
+        var parsedContent = await content.ReadFromJsonAsync<List<ItemMarketResponseModel>>();
+        if(parsedContent == null)
+        {
+            _logger.LogError("Failed to deserialize response content");
+            throw new Exception("Failed to deserialize response content");
+        }
+
+        return parsedContent[0].Result.Data;
     }
 
     private async Task InsertWeaponsAsync(List<Weapon> weapons)
