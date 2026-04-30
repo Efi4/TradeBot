@@ -11,12 +11,12 @@ using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Http.Json;
 using System.Web;
-using TradeBot.Core.Objects;
 using System.Linq;
 using TradeBot.Data.Contexts;
 using TradeBot.Data.Models;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using EFCore.BulkExtensions;
+using Microsoft.EntityFrameworkCore;
 
 namespace TradeBot.Core.Services;
 
@@ -36,9 +36,15 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
     public async Task<bool> CalculateAverageWeaponPricesAsync()
     {
         _logger.LogInformation("Starting to calculate average weapon prices...");
+        var weaponCount = await _dbContext.Weapons.CountAsync();
+        if(weaponCount == 0)
+        {
+            _logger.LogError("No weapon items were found in the database. Calculating average price is not possible.");
+            return false;
+        }
         try
         {
-            var weaponList =_dbContext.Weapons.ToList();
+            var weaponList = await _dbContext.Weapons.ToListAsync();
             var averagePriceList = new List<WeaponPrice>();
             for(int crit = Constants.WeaponStatRanges.MinSniperCrit; crit <= Constants.WeaponStatRanges.MaxJetCrit; crit++)
             {
@@ -55,23 +61,23 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
                     {
                         continue;
                     }
-                    var averagePrice = weaponPositions.Sum(w => w.Price) / weaponPositions.Count;
+                    var averageWeaponPrice = weaponPositions.Sum(w => w.Price) / weaponPositions.Count;
                     averagePriceList.Add(new WeaponPrice
                     {
                         Type = weaponPositions.First().Type,
                         Attack = attack,
                         Crit = crit,
-                        Price = averagePrice         
+                        Price = averageWeaponPrice         
                     });
                 }
             }
-            await _dbContext.BulkInsertOrUpdateOrDeleteAsync(averagePriceList);
+            await _dbContext.BulkInsertOrUpdateAsync(averagePriceList);
             await _dbContext.SaveChangesAsync();
-            _logger.LogInformation("Prices: " + string.Join(" '\n'", _dbContext.WeaponPrices.ToList().Select(wp => $"Attack: {wp.Attack}, Crit: {wp.Crit}, Price: {wp.Price}")));
+            _logger.LogInformation("Average prices for weapons was updated with relevant values.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while calculating average price.");
+            _logger.LogError(ex, "An error occurred while calculating average price for weapons.");
             return false;
         }
         return true;
@@ -79,19 +85,56 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
 
     public async Task<bool> CalculateAverageArmorPricesAsync()
     {
+        var armorCount = await _dbContext.Armors.CountAsync();
+        if(armorCount == 0)
+        {
+            _logger.LogError("No armor items were found in the database. Calculating average price is not possible.");
+            return false;
+        }
         _logger.LogInformation("Starting to calculate average armor prices...");
         try
         {
-            var armorList =_dbContext.ArmorPrices.ToList();
+            var averagePriceList = new List<ArmorPrice>();   
             foreach(var armorType in Enum.GetValues<ArmorType>())
-            {
+            {                
+                var armorStatRange = _statRangeOptions.Value.ArmorStatRanges.Find(ar => ar.Name == armorType);
+                if(armorStatRange == null) 
+                {
+                    _logger.LogWarning($"Stat range for armor type {armorType} was not found in configuration. Average price calculation for this position will be skipped.");
+                    continue;
+                }
+                var armorTypeExists = await _dbContext.Armors.AnyAsync(ar => ar.Type == armorType);
+                if(!armorTypeExists)
+                {
+                    _logger.LogWarning($"Armor items for type {armorType} was not found in database. Average price calculation for this position will be skipped.");
+                    continue;
+                }
 
+                for(int i = armorStatRange.Stats["Min"]; i<= armorStatRange.Stats["Max"]; i++)
+                {
+                    var armorItemsPerTypePerStat = await _dbContext.Armors.Where(ar => ar.Type == armorType && ar.Stat == i).ToListAsync();
+                    if( armorItemsPerTypePerStat == null || armorItemsPerTypePerStat.Count == 0)
+                    {
+                        _logger.LogInformation($"No items of type '{armorType}' was not found for stat '{i}'. Average price calculation for this position will be skipped.");
+                         continue;
+                    }
+                    var averageArmorPrice = armorItemsPerTypePerStat.Sum(w => w.Price) / armorItemsPerTypePerStat.Count;
+                    averagePriceList.Add(new ArmorPrice
+                    {
+                        Type = armorType,
+                        Stat = i,
+                        Price = averageArmorPrice         
+                    });
+                }
+                if(averagePriceList.Count > 0) _logger.LogInformation($"Average prices for armor items {armorType} was processed. And example price '{averagePriceList.Last().Price}' for stat '{averagePriceList.Last().Stat}'.");
             }
-            var averagePriceList = new List<ArmorPrice>();
+            await _dbContext.BulkInsertOrUpdateAsync(averagePriceList);
+            await _dbContext.SaveChangesAsync();
+            _logger.LogInformation("Average prices for armor items was updated with relevant values.");
          }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while calculating average price.");
+            _logger.LogError(ex, "An error occurred while calculating average price of armor items.");
             return false;
         }
         return true;

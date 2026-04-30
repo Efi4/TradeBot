@@ -43,6 +43,6 @@ public static class EnvironmentConfiguration
     public static string GetAzureStorageConnectionString()
     {
         return Environment.GetEnvironmentVariable(Constants.EnvironmentVariables.AzureStorageConnectionStringEnvironmentVariableName)
-            ?? throw new ArgumentNullException(nameof(Constants.EnvironmentVariables.AzureStorageConnectionStringEnvironmentVariableName));
+            ??  throw new ArgumentNullException("Trading storage account connection string environment variable is not set.");
     }
 }
