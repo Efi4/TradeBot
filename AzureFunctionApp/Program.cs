@@ -4,6 +4,7 @@ using TradeBot.Core.Services;
 using TradeBot.Core.Interfaces;
 using TradeBot.Base.Configuration;
 using TradeBot.Data.Configuration;
+using TradeBot.Data.Helpers;
 using System;
 using TradeBot.Data.Contexts;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.Azure.WebJobs.Host.Bindings;
 using TradeBot.Core.Models;
+using Microsoft.Extensions.Logging;
 
 // Load environment variables from .env file
 var environment = Environment.GetEnvironmentVariable("AZURE_FUNCTIONS_ENVIRONMENT");
@@ -33,7 +35,15 @@ var host = new HostBuilder()
         // Register HTTP client with CheckThePricesService
         services.AddHttpClient<ICheckThePricesService, CheckThePricesService>();
         services.AddSingleton<ICalculateAveragePriceService, CalculateAveragePriceService>();
-        // Bind HttpHeaders configuration
+        
+        // Register AzureStorageHelper as Singleton
+        services.AddSingleton(provider => 
+        {
+            var azureConnectionString = EnvironmentConfiguration.GetAzureStorageConnectionString();
+            return new AzureStorageHelper(azureConnectionString, "deals", "trade-deals");
+        });
+        
+        // Bind configuration
         services.Configure<RequestDataOptions>(context.Configuration.GetSection("RequestDataOptions"));
         services.Configure<StatRangeOptions>(context.Configuration.GetSection("StatRangeOptions"));
 
