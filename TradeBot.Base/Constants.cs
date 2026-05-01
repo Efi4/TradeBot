@@ -28,4 +28,30 @@ public static class Constants
         public const int MinJetCrit = 41;
         public const int MaxJetCrit = 50;
     }
+    public static class EquipmentLookup
+    {
+        public static Dictionary<string, string> Mapping = new()
+        {
+            {"helmet3", "Blue Helmet"},
+            {"helmet4", "Purple Helmet"},
+            {"helmet5", "Legendary Helmet"},
+            {"helmet6", "Mythic Helmet"},
+            {"boots3", "Blue Boots"},
+            {"boots4", "Purple Boots"},
+            {"boots5", "Legendary Boots"},
+            {"boots6", "Mythic Boots"},
+            {"chest3", "Blue Chest"},
+            {"chest4", "Purple Chest"},
+            {"chest5", "Legendary Chest"},
+            {"chest6", "Mythic Chest"},
+            {"gloves3", "Blue Gloves3"},
+            {"gloves4", "Purple Gloves3"},
+            {"gloves5", "Legendary Gloves3"},
+            {"gloves6", "Mythic Gloves3"},
+            {"pants3", "Blue Pants3"},
+            {"pants4", "Purple Pants3"},
+            {"pants5", "Legendary Pants3"},
+            {"pants6", "Mythic Pants3"}
+        };
+    }
 }

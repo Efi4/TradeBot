@@ -8,6 +8,7 @@ using TradeBot.Core.Interfaces;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Json;
 using Humanizer;
+using TradeBot.Base;
 
 namespace TradeBot.Core.Services;
 
@@ -40,7 +41,7 @@ public class DiscordIntegrationService : IDiscordIntegrationService
         var discordChannelPostRequest = new HttpRequestMessage(HttpMethod.Post, _discordIntegrationOptions.Value.WebHookUrl)
         {
             Content = new StringContent("{\"content\": \"Trade deal is available: " +
-            $"Equipment type is {equipmentData.ItemCode}, price is {equipmentData.Price}, offer was created at <t:{new DateTimeOffset(equipmentData.CreatedAt).ToUnixTimeSeconds()}:R>"+
+            $"{Constants.EquipmentLookup.Mapping[equipmentData.ItemCode]}, price is {equipmentData.Price} gold, <t:{new DateTimeOffset(equipmentData.CreatedAt).ToUnixTimeSeconds()}:R>"+
             "\"}",
             System.Text.Encoding.UTF8, "application/json")
         };
