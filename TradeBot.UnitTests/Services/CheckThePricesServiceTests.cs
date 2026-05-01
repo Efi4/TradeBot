@@ -8,9 +8,12 @@ using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using TradeBot.Core.Interfaces;
-using TradeBot.Core.Models;
+using TradeBot.Base.Models;
 using TradeBot.Core.Services;
 using TradeBot.Data.Contexts;
+using TradeBot.Data.Helpers;
+using TradeBot.Base.Configuration;
+using TradeBot.Data.Helpers;
 
 namespace TradeBot.UnitTests.Services
 {
@@ -21,6 +24,7 @@ namespace TradeBot.UnitTests.Services
         private Mock<IOptions<RequestDataOptions>> _mockHttpHeadersOptions = null!;
         private Mock<TradingDbContext> _dbContextMock = null!;
         private CheckThePricesService _sut = null!;
+        private Mock<IAzureStorageHelper> _azureStorageHelper = null!;
 
         [OneTimeSetUp]
         public void Setup()
@@ -49,7 +53,8 @@ namespace TradeBot.UnitTests.Services
                 _mockLogger.Object,
                 httpClient,
                 _mockHttpHeadersOptions.Object,
-                _dbContextMock.Object
+                _dbContextMock.Object,
+                _azureStorageHelper.Object
             );
         }
 

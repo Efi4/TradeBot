@@ -10,24 +10,27 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 using TradeBot.Base.Models;
+using TradeBot.Base.Configuration;
+using TradeBot.Base;
 
 namespace TradeBot.Data.Helpers;
 
 /// <summary>
 /// Helper class for Azure Storage operations
 /// </summary>
-public class AzureStorageHelper
+public class AzureStorageHelper : IAzureStorageHelper
 {
     private readonly BlobContainerClient _containerClient;
     private readonly QueueClient _queueClient;
 
-    public AzureStorageHelper(string connectionString, string containerName, string queueName)
+    public AzureStorageHelper()
     {
-        var blobServiceClient = new BlobServiceClient(connectionString);
-        _containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+        var azureConnectionString = EnvironmentConfiguration.GetAzureStorageConnectionString();
+        var blobServiceClient = new BlobServiceClient(azureConnectionString);
+        _containerClient = blobServiceClient.GetBlobContainerClient(Constants.AzureStorageConfiguration.BlobContainerName);
         
-        var queueServiceClient = new QueueServiceClient(connectionString);
-        _queueClient = queueServiceClient.GetQueueClient(queueName);
+        var queueServiceClient = new QueueServiceClient(azureConnectionString);
+        _queueClient = queueServiceClient.GetQueueClient(Constants.AzureStorageConfiguration.TradeDealsQueueName);
     }
 
     /// <summary>
@@ -144,7 +147,7 @@ public class AzureStorageHelper
     /// <summary>
     /// Reads (receives) a message from the queue
     /// </summary>
-    public async Task<EquipmentResponseModel?> ReadFromQueueAsync()
+    public async Task<EquipmentResponseModel?> ReadFromTradeDealsQueueAsync()
     {
         try
         {

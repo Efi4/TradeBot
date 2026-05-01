@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Threading.Tasks;
 using TradeBot.Core.Interfaces;
-using TradeBot.Core.Models;
+using TradeBot.Base.Models;
 
 namespace AzureFunctionApp.Functions
 {
@@ -29,11 +29,11 @@ namespace AzureFunctionApp.Functions
         {
             _logger.LogInformation("HTTP trigger function processed a request.");
 
-            // CheckPricesResult result = await _priceService.CheckPricesAsync();
-            // var averagePriceResult = await _averagePriceService.CalculateAverageWeaponPricesAsync();
-            // var averagePriceResult = await _averagePriceService.CalculateAverageArmorPricesAsync();
+            CheckPricesResult result = await _priceService.CheckPricesAsync();
+            // await _averagePriceService.CalculateAverageWeaponPricesAsync();
+            // await _averagePriceService.CalculateAverageArmorPricesAsync();
             var response = req.CreateResponse(HttpStatusCode.OK);
-            // await response.WriteStringAsync(result.ToString());
+            await response.WriteStringAsync(result.ToString());
             return response;
         }
     }

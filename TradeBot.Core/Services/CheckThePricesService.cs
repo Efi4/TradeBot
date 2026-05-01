@@ -28,7 +28,7 @@ public class CheckThePricesService : ICheckThePricesService
     private readonly HttpClient _httpClient;
     private readonly IOptions<RequestDataOptions> _requestData;
     private readonly TradingDbContext _dbContext;
-    private readonly AzureStorageHelper _azureStorageHelper;
+    private readonly IAzureStorageHelper _azureStorageHelper;
     private List<Weapon> _weapons;
     private List<Armor> _armors;
     private int _dealsFound;
@@ -36,7 +36,7 @@ public class CheckThePricesService : ICheckThePricesService
     private UriBuilder _batchRequestUriBuilder;
     private Dictionary<string,string> _headers;
 
-    public CheckThePricesService(ILogger<CheckThePricesService> logger, HttpClient httpClient, IOptions<RequestDataOptions> requestData, TradingDbContext dbContext, AzureStorageHelper azureStorageHelper)
+    public CheckThePricesService(ILogger<CheckThePricesService> logger, HttpClient httpClient, IOptions<RequestDataOptions> requestData, TradingDbContext dbContext, IAzureStorageHelper azureStorageHelper)
     {
         var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate};
         _logger = logger;

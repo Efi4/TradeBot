@@ -28,7 +28,7 @@ var host = new HostBuilder()
     {
         // Register data access services
         var connectionString = EnvironmentConfiguration.GetTradingDatabaseConnectionString(environment == "Development");
-        
+        var azureConnectionString = EnvironmentConfiguration.GetAzureStorageConnectionString();
         services.AddTradingDatabase(connectionString);
 
         // Register HTTP client with CheckThePricesService
@@ -36,11 +36,7 @@ var host = new HostBuilder()
         services.AddScoped<ICalculateAveragePriceService, CalculateAveragePriceService>();
         
         // Register AzureStorageHelper as Singleton
-        services.AddSingleton(provider => 
-        {
-            var azureConnectionString = EnvironmentConfiguration.GetAzureStorageConnectionString();
-            return new AzureStorageHelper(azureConnectionString, "deals", "trade-deals");
-        });
+        services.AddSingleton<IAzureStorageHelper, AzureStorageHelper>();
         
         // Bind configuration
         services.Configure<RequestDataOptions>(context.Configuration.GetSection("RequestDataOptions"));
