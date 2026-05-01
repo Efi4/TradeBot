@@ -55,7 +55,6 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
 
                 for(int attack = minAttack; attack <= maxAttack; attack++)  
                 {
-                    _logger.LogInformation($"Calculating average price for Attack: {attack}, Crit: {crit}");
                     var weaponPositions = weaponList.Where(w => w.Attack == attack && w.Crit == crit).ToList();
                     if(weaponPositions.Count == 0)
                     {
@@ -145,7 +144,7 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
         <= Constants.WeaponStatRanges.MaxSniperCrit => (Constants.WeaponStatRanges.MinSniperAttack, Constants.WeaponStatRanges.MaxSniperAttack),
         > Constants.WeaponStatRanges.MaxSniperCrit and < Constants.WeaponStatRanges.MinTankCrit => null,
         >= Constants.WeaponStatRanges.MinTankCrit and <= Constants.WeaponStatRanges.MaxTankCrit => (Constants.WeaponStatRanges.MinTankAttack, Constants.WeaponStatRanges.MaxTankAttack),
-        >= Constants.WeaponStatRanges.MaxTankCrit and <= Constants.WeaponStatRanges.MinJetCrit => null,
+        > Constants.WeaponStatRanges.MaxTankCrit and < Constants.WeaponStatRanges.MinJetCrit => null,
         >= Constants.WeaponStatRanges.MinJetCrit => (Constants.WeaponStatRanges.MinJetAttack, Constants.WeaponStatRanges.MaxJetAttack)
     };
 

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic;
 using TradeBot.Core.Interfaces;
 using TradeBot.Base;
 using TradeBot.Base.Objects;
@@ -68,38 +67,45 @@ public class CheckThePricesService : ICheckThePricesService
             {
                 _logger.LogError("No armor items were found in the database. Calculating average price is not possible.");
             }
+            var currentPrices = await _dbContext.WeaponPrices.ToListAsync();
+            foreach(var price in currentPrices)
+            {
+                _logger.LogInformation($"{price.Attack}-{price.Crit}.Price={price.Price}");
+            }
             var list = new List<EquipmentResponseModel>()
             {
                 new EquipmentResponseModel()
                 {
-                    ItemCode = "helmet4",
+                    ItemCode = "tank",
                     Item = new ItemModel()
                     {
-                        ItemCode = "helmet4",
+                        ItemCode = "tank",
                         Skills = new Dictionary<string, int>()
                         {
-                            {"critDamage", 71}
+                            {Constants.EquipmentLookup.AttackStatName, 170},
+                            {Constants.EquipmentLookup.CritStatName, 34 }
                         }
                     },
                     CreatedAt = DateTime.Now,
-                    Price = 10m
+                    Price = 100m
                 },
                 new EquipmentResponseModel()
                 {
-                    ItemCode = "helmet4",
+                    ItemCode = "tank",
                     Item = new ItemModel()
                     {
-                        ItemCode = "helmet4",
+                        ItemCode = "tank",
                         Skills = new Dictionary<string, int>()
                         {
-                            {"critDamage", 71}
+                            {Constants.EquipmentLookup.AttackStatName, 150},
+                            {Constants.EquipmentLookup.CritStatName, 30 }
                         }
                     },
                     CreatedAt = DateTime.Now,
-                    Price = 60m
+                    Price = 200m
                 }
             };
-            await ProcessPossibleTradeDealsAsync(list);
+            await ProcessPossibleWeaponTradeDealsAsync(list);
             return result;
             foreach(var weaponType in Enum.GetValues<WeaponType>())
             {
@@ -127,6 +133,8 @@ public class CheckThePricesService : ICheckThePricesService
             await InsertArmorsAsync(_armors);
             result.Messages.Add($"{_armors.Count} armor items were added in database.");
 
+            result.ItemsChecked = _weapons.Count + _armors.Count;
+            _logger.LogInformation($"Items checked: {result.ItemsChecked}");  
             result.DealsFound = _dealsFound;
             _logger.LogInformation($"Found deals:{_dealsFound}");            
 
@@ -160,7 +168,8 @@ public class CheckThePricesService : ICheckThePricesService
 
             _logger.LogInformation($"Initial weapon request successful: {initialResponse.StatusCode}");
             var initialData = await ParseResponseContent(initialResponse.Content);
-            
+            await ProcessPossibleWeaponTradeDealsAsync(initialData.ItemsModel);
+
             FillWeaponCollection(initialData.ItemsModel);
             var nextCursor = initialData.NextCursor;
 
@@ -172,7 +181,8 @@ public class CheckThePricesService : ICheckThePricesService
                 var nextBatchResponse = await _httpClient.SendAsync(batchWeaponRequest);
                 
                 var batchData = await ParseResponseContent(nextBatchResponse.Content);
-                
+                await ProcessPossibleWeaponTradeDealsAsync(initialData.ItemsModel);
+
                 FillWeaponCollection(batchData.ItemsModel);
                 nextCursor = batchData.NextCursor;
             }
@@ -202,7 +212,7 @@ public class CheckThePricesService : ICheckThePricesService
 
             _logger.LogInformation($"Initial armor request successful: {initialResponse.StatusCode}");
             var initialData = await ParseResponseContent(initialResponse.Content);
-            await ProcessPossibleTradeDealsAsync(initialData.ItemsModel);
+            await ProcessPossibleArmorTradeDealsAsync(initialData.ItemsModel);
  
             FillArmorCollection(initialData.ItemsModel);
             var nextCursor = initialData.NextCursor;
@@ -215,7 +225,7 @@ public class CheckThePricesService : ICheckThePricesService
                 var nextBatchResponse = await _httpClient.SendAsync(batchArmorRequest);
                 
                 var batchData = await ParseResponseContent(nextBatchResponse.Content);
-                await ProcessPossibleTradeDealsAsync(batchData.ItemsModel);
+                await ProcessPossibleArmorTradeDealsAsync(batchData.ItemsModel);
                 FillArmorCollection(batchData.ItemsModel);
                 nextCursor = batchData.NextCursor;
             }
@@ -291,8 +301,8 @@ public class CheckThePricesService : ICheckThePricesService
         {
             Type = Enum.Parse<WeaponType>(item.ItemCode, ignoreCase: true),
             Price = item.Price,
-            Attack = item.Item.Skills["attack"],
-            Crit = item.Item.Skills["criticalChance"]
+            Attack = item.Item.Skills[Constants.EquipmentLookup.AttackStatName],
+            Crit = item.Item.Skills[Constants.EquipmentLookup.CritStatName]
         }));
     }
 
@@ -359,7 +369,7 @@ public class CheckThePricesService : ICheckThePricesService
         }
     }
 
-    private async Task ProcessPossibleTradeDealsAsync(List<EquipmentResponseModel> equipment)
+    private async Task ProcessPossibleArmorTradeDealsAsync(List<EquipmentResponseModel> equipment)
     {
         foreach(var position in equipment)
         {
@@ -375,6 +385,34 @@ public class CheckThePricesService : ICheckThePricesService
                 try
                 {
                     _logger.LogInformation($"{position.ItemCode}' with stat='{position.Item.Skills.First().Value}' and price '{position.Price}' listed at {position.CreatedAt} can be bought with margin >10%");
+                    await _azureStorageHelper.PushToQueueEncodedAsync(position);
+                }
+                catch(Exception ex)
+                {
+                    _logger.LogError(ex.Message + " " + ex.InnerException?.Message + ex.InnerException?.InnerException?.Message + " \nStack trace: " + ex.StackTrace);
+                }
+            }
+        }
+    }
+    private async Task ProcessPossibleWeaponTradeDealsAsync(List<EquipmentResponseModel> equipment)
+    {
+        foreach(var position in equipment)
+        {
+            var weaponType = Enum.Parse<WeaponType>(position.Item.ItemCode, ignoreCase: true);
+            var attack = position.Item.Skills[Constants.EquipmentLookup.AttackStatName];
+            var crit = position.Item.Skills[Constants.EquipmentLookup.CritStatName];
+            bool isApplicableForDeal = await _dbContext.WeaponPrices.Where(w => 
+                w.Type == weaponType &&
+                w.Attack == attack &&
+                w.Crit == crit &&
+                position.Price < (w.Price * 1.1m) )
+                .AnyAsync();
+            
+            if(isApplicableForDeal)
+            {
+                try
+                {
+                    _logger.LogInformation($"{position.ItemCode}' with stats'{attack}-{crit}' and price '{position.Price}' listed at {position.CreatedAt} can be bought with margin >10%");
                     await _azureStorageHelper.PushToQueueEncodedAsync(position);
                 }
                 catch(Exception ex)

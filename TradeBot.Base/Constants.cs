@@ -30,6 +30,8 @@ public static class Constants
     }
     public static class EquipmentLookup
     {
+        public const string AttackStatName = "attack";
+        public const string CritStatName = "criticalChance";
         public static Dictionary<string, string> Mapping = new()
         {
             {"helmet3", "Blue Helmet"},
@@ -51,7 +53,11 @@ public static class Constants
             {"pants3", "Blue Pants3"},
             {"pants4", "Purple Pants3"},
             {"pants5", "Legendary Pants3"},
-            {"pants6", "Mythic Pants3"}
+            {"pants6", "Mythic Pants3"},
+            {"rifle", "Blue Rifle"},
+            {"sniper", "Purple Sniper Gun"},
+            {"tank", "Legendary Tank"},
+            {"jet", "Mythic Jet"}
         };
     }
 }
