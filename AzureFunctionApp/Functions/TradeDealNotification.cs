@@ -2,23 +2,27 @@ using TradeBot.Base.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Functions.Worker;
 using System.Text.Json;
+using System.Threading.Tasks;
+using TradeBot.Core.Interfaces;
 
 namespace AzureFunctionApp.Functions;
 
 public class TradeDealNotification
     {
         private readonly ILogger<TradeDealNotification> _logger;
+        private readonly IDiscordIntegrationService _discordIntegrationService;
 
-        public TradeDealNotification(ILogger<TradeDealNotification> logger)
+        public TradeDealNotification(ILogger<TradeDealNotification> logger, IDiscordIntegrationService discordIntegrationService)
         {
             _logger = logger;
+            _discordIntegrationService = discordIntegrationService;
         }
 
         [Function(nameof(TradeDealNotification))]
-        public void Run(
+        public async Task Run(
             [QueueTrigger("trade-deals", Connection = "AzureWebJobsStorage")] EquipmentResponseModel equipmentDetails)
         {
             _logger.LogInformation($"C# Queue trigger function processed: {equipmentDetails.ItemCode}");
-            
+            await _discordIntegrationService.PostMessageInDedicatedChannelAsync(equipmentDetails);
         }
     }

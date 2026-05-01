@@ -83,6 +83,20 @@ public class CheckThePricesService : ICheckThePricesService
                     },
                     CreatedAt = DateTime.Now,
                     Price = 10m
+                },
+                new EquipmentResponseModel()
+                {
+                    ItemCode = "helmet4",
+                    Item = new ItemModel()
+                    {
+                        ItemCode = "helmet4",
+                        Skills = new Dictionary<string, int>()
+                        {
+                            {"critDamage", 71}
+                        }
+                    },
+                    CreatedAt = DateTime.Now,
+                    Price = 60m
                 }
             };
             await ProcessPossibleTradeDealsAsync(list);

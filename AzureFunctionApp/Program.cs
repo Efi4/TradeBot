@@ -34,6 +34,8 @@ var host = new HostBuilder()
         // Register HTTP client with CheckThePricesService
         services.AddHttpClient<ICheckThePricesService, CheckThePricesService>();
         services.AddScoped<ICalculateAveragePriceService, CalculateAveragePriceService>();
+        services.AddHttpClient<IDiscordIntegrationService, DiscordIntegrationService>();
+        services.AddScoped<IDiscordIntegrationService, DiscordIntegrationService>();
         
         // Register AzureStorageHelper as Singleton
         services.AddSingleton<IAzureStorageHelper, AzureStorageHelper>();
@@ -41,6 +43,7 @@ var host = new HostBuilder()
         // Bind configuration
         services.Configure<RequestDataOptions>(context.Configuration.GetSection("RequestDataOptions"));
         services.Configure<StatRangeOptions>(context.Configuration.GetSection("StatRangeOptions"));
+        services.Configure<DiscordIntegrationOptions>(context.Configuration.GetSection("DiscordIntegrationOptions"));
 
     })
     .ConfigureAppConfiguration((context, builder) =>
