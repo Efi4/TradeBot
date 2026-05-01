@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace TradeBot.Core.Models;
+namespace TradeBot.Base.Models;
 public class CheckPricesResult
 {
     public bool Success { get; set; }

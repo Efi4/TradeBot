@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using TradeBot.Base.Objects;
 
-namespace TradeBot.Core.Models;
+namespace TradeBot.Base.Models;
 
 public class StatRangeOptions
 {

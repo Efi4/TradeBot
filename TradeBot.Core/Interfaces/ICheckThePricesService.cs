@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TradeBot.Core.Models;
+using TradeBot.Base.Models;
 
 namespace TradeBot.Core.Interfaces
 {

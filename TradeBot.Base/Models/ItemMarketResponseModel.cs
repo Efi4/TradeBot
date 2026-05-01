@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using System.ComponentModel.DataAnnotations;
 
-namespace TradeBot.Core.Models;
+namespace TradeBot.Base.Models;
 
 public class ItemMarketResponseModel
 {
@@ -19,7 +19,7 @@ public class ItemMarketResultModel
 public class ItemMarketDataContainerModel
 {
     [JsonPropertyName("items")]
-    public required List<TradeBot.Core.Models.EquipmentResponseModel> ItemsModel { get; set; }
+    public required List<Models.EquipmentResponseModel> ItemsModel { get; set; }
     [JsonPropertyName("nextCursor")]
     public string? NextCursor { get; set; }
 }

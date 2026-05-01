@@ -11,8 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
-using Microsoft.Azure.WebJobs.Host.Bindings;
-using TradeBot.Core.Models;
+using TradeBot.Base.Models;
 using Microsoft.Extensions.Logging;
 
 // Load environment variables from .env file
@@ -34,7 +33,7 @@ var host = new HostBuilder()
 
         // Register HTTP client with CheckThePricesService
         services.AddHttpClient<ICheckThePricesService, CheckThePricesService>();
-        services.AddSingleton<ICalculateAveragePriceService, CalculateAveragePriceService>();
+        services.AddScoped<ICalculateAveragePriceService, CalculateAveragePriceService>();
         
         // Register AzureStorageHelper as Singleton
         services.AddSingleton(provider => 

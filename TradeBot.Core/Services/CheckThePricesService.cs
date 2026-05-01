@@ -5,19 +5,20 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic;
 using TradeBot.Core.Interfaces;
-using TradeBot.Core.Models;
 using TradeBot.Base;
 using TradeBot.Base.Objects;
+using TradeBot.Base.Models;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Http.Json;
 using System.Web;
-using TradeBot.Core.Objects;
 using System.Linq;
 using TradeBot.Data.Contexts;
 using TradeBot.Data.Models;
 using System.Net.Http.Headers;
 using Microsoft.EntityFrameworkCore;
+using SQLitePCL;
+using TradeBot.Data.Helpers;
 
 namespace TradeBot.Core.Services;
 
@@ -27,6 +28,7 @@ public class CheckThePricesService : ICheckThePricesService
     private readonly HttpClient _httpClient;
     private readonly IOptions<RequestDataOptions> _requestData;
     private readonly TradingDbContext _dbContext;
+    private readonly AzureStorageHelper _azureStorageHelper;
     private List<Weapon> _weapons;
     private List<Armor> _armors;
     private int _dealsFound;
@@ -34,13 +36,14 @@ public class CheckThePricesService : ICheckThePricesService
     private UriBuilder _batchRequestUriBuilder;
     private Dictionary<string,string> _headers;
 
-    public CheckThePricesService(ILogger<CheckThePricesService> logger, HttpClient httpClient, IOptions<RequestDataOptions> requestData, TradingDbContext dbContext)
+    public CheckThePricesService(ILogger<CheckThePricesService> logger, HttpClient httpClient, IOptions<RequestDataOptions> requestData, TradingDbContext dbContext, AzureStorageHelper azureStorageHelper)
     {
         var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate};
         _logger = logger;
         _httpClient = new HttpClient(handler) {Timeout = TimeSpan.FromSeconds(30)};
         _requestData = requestData;
         _dbContext = dbContext;
+        _azureStorageHelper = azureStorageHelper;
         _weapons = new List<Weapon>();
         _armors = new List<Armor>();
         _initialTransactionRequestUriBuilder = new UriBuilder(requestData.Value.BaseUrl);
@@ -51,14 +54,39 @@ public class CheckThePricesService : ICheckThePricesService
     public async Task<CheckPricesResult> CheckPricesAsync()
     {
         _logger.LogInformation("Clearing equipment tables.");
-        await ClearEquipmentTables();
+        // await ClearEquipmentTables();
 
         PrepareQuerryStringParameters();
 
         _logger.LogInformation("Starting to check prices...");
         var result = new CheckPricesResult();
         try
-        {            
+        {
+            var armorCount = await _dbContext.ArmorPrices.CountAsync();
+             _logger.LogInformation($"Found {armorCount} prices.");
+            if(armorCount == 0)
+            {
+                _logger.LogError("No armor items were found in the database. Calculating average price is not possible.");
+            }
+            var list = new List<EquipmentResponseModel>()
+            {
+                new EquipmentResponseModel()
+                {
+                    ItemCode = "helmet4",
+                    Item = new ItemModel()
+                    {
+                        ItemCode = "helmet4",
+                        Skills = new Dictionary<string, int>()
+                        {
+                            {"critDamage", 71}
+                        }
+                    },
+                    CreatedAt = DateTime.Now,
+                    Price = 10m
+                }
+            };
+            await ProcessPossibleTradeDealsAsync(list);
+            return result;
             foreach(var weaponType in Enum.GetValues<WeaponType>())
             {
                 if (weaponType is not WeaponType.Tank) {continue;} //Add for testing purposes
@@ -71,6 +99,7 @@ public class CheckThePricesService : ICheckThePricesService
             // Insert weapons found into database
             await InsertWeaponsAsync(_weapons);
             result.Messages.Add($"{_weapons.Count} weapons were added in database.");
+
             foreach(var armorType in Enum.GetValues<ArmorType>())
             {
                 if (armorType is not ArmorType.Helmet4) {continue;} //Add for testing purposes
@@ -118,7 +147,7 @@ public class CheckThePricesService : ICheckThePricesService
             _logger.LogInformation($"Initial weapon request successful: {initialResponse.StatusCode}");
             var initialData = await ParseResponseContent(initialResponse.Content);
             
-            FillWeaponCollectionAsync(initialData.ItemsModel);
+            FillWeaponCollection(initialData.ItemsModel);
             var nextCursor = initialData.NextCursor;
 
             while(nextCursor != null)
@@ -130,7 +159,7 @@ public class CheckThePricesService : ICheckThePricesService
                 
                 var batchData = await ParseResponseContent(nextBatchResponse.Content);
                 
-                FillWeaponCollectionAsync(batchData.ItemsModel);
+                FillWeaponCollection(batchData.ItemsModel);
                 nextCursor = batchData.NextCursor;
             }
         }
@@ -159,8 +188,9 @@ public class CheckThePricesService : ICheckThePricesService
 
             _logger.LogInformation($"Initial armor request successful: {initialResponse.StatusCode}");
             var initialData = await ParseResponseContent(initialResponse.Content);
-            
-            FillArmorCollectionAsync(initialData.ItemsModel);
+            await ProcessPossibleTradeDealsAsync(initialData.ItemsModel);
+ 
+            FillArmorCollection(initialData.ItemsModel);
             var nextCursor = initialData.NextCursor;
 
             while(nextCursor != null)
@@ -171,8 +201,8 @@ public class CheckThePricesService : ICheckThePricesService
                 var nextBatchResponse = await _httpClient.SendAsync(batchArmorRequest);
                 
                 var batchData = await ParseResponseContent(nextBatchResponse.Content);
-                
-                FillArmorCollectionAsync(batchData.ItemsModel);
+                await ProcessPossibleTradeDealsAsync(batchData.ItemsModel);
+                FillArmorCollection(batchData.ItemsModel);
                 nextCursor = batchData.NextCursor;
             }
         }
@@ -241,7 +271,7 @@ public class CheckThePricesService : ICheckThePricesService
             _batchRequestUriBuilder.Port = -1; 
     }
 
-    private void FillWeaponCollectionAsync(List<EquipmentResponseModel> weaponList)
+    private void FillWeaponCollection(List<EquipmentResponseModel> weaponList)
     {
         weaponList.ForEach(item => _weapons.Add(new Weapon
         {
@@ -252,7 +282,7 @@ public class CheckThePricesService : ICheckThePricesService
         }));
     }
 
-    private void FillArmorCollectionAsync(List<EquipmentResponseModel> armorList)    
+    private void FillArmorCollection(List<EquipmentResponseModel> armorList)    
     {
         armorList.ForEach(item => _armors.Add(new Armor
         {
@@ -312,6 +342,32 @@ public class CheckThePricesService : ICheckThePricesService
         catch (Exception ex)
         {
             _logger.LogError($"Error clearing equipment tables: {ex.Message}");
+        }
+    }
+
+    private async Task ProcessPossibleTradeDealsAsync(List<EquipmentResponseModel> equipment)
+    {
+        foreach(var position in equipment)
+        {
+            var armorType = Enum.Parse<ArmorType>(position.Item.ItemCode, ignoreCase: true);
+            bool isApplicableForDeal = await _dbContext.ArmorPrices.Where(ar => 
+                ar.Type == armorType &&
+                ar.Stat == position.Item.Skills.First().Value &&
+                position.Price < (ar.Price * 1.1m) )
+                .AnyAsync();
+            
+            if(isApplicableForDeal)
+            {
+                try
+                {
+                    _logger.LogInformation($"{position.ItemCode}' with stat='{position.Item.Skills.First().Value}' and price '{position.Price}' listed at {position.CreatedAt} can be bought with margin >10%");
+                    await _azureStorageHelper.PushToQueueEncodedAsync(position);
+                }
+                catch(Exception ex)
+                {
+                    _logger.LogError(ex.Message + " " + ex.InnerException?.Message + ex.InnerException?.InnerException?.Message + " \nStack trace: " + ex.StackTrace);
+                }
+            }
         }
     }
 }

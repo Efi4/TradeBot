@@ -1,10 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Azure.Core.Pipeline;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
+using TradeBot.Base.Models;
 
 namespace TradeBot.Data.Helpers;
 
@@ -96,9 +101,9 @@ public class AzureStorageHelper
     }
 
     /// <summary>
-    /// Pushes a message to the queue
+    /// Pushes an encoded message to the queue
     /// </summary>
-    public async Task PushToQueueAsync(string message)
+    public async Task PushToQueueEncodedAsync(EquipmentResponseModel equipment)
     {
         try
         {
@@ -106,18 +111,40 @@ public class AzureStorageHelper
             {
                 throw new InvalidOperationException("Queue client not initialized. Initialize with queue name in constructor.");
             }
-            await _queueClient.SendMessageAsync(message);
+            string jsonMessage = JsonSerializer.Serialize(equipment);
+            string base64Encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(jsonMessage));
+            await _queueClient.SendMessageAsync(base64Encoded);
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException("Failed to push message to queue", ex);
+            throw new InvalidOperationException("Failed to push a message in the queue", ex);   
+        }
+    }
+
+    /// <summary>
+    /// Pushes a message to the queue
+    /// </summary>
+    public async Task PushToQueueAsync(EquipmentResponseModel equipment)
+    {
+        try
+        {
+            if (_queueClient == null)
+            {
+                throw new InvalidOperationException("Queue client not initialized. Initialize with queue name in constructor.");
+            }
+            string jsonMessage = JsonSerializer.Serialize(equipment);
+            await _queueClient.SendMessageAsync(jsonMessage);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to push a message in the queue", ex);   
         }
     }
 
     /// <summary>
     /// Reads (receives) a message from the queue
     /// </summary>
-    public async Task<QueueMessage> ReadFromQueueAsync()
+    public async Task<EquipmentResponseModel?> ReadFromQueueAsync()
     {
         try
         {
@@ -130,7 +157,8 @@ public class AzureStorageHelper
             {
                 throw new InvalidOperationException("No messages available in the queue");
             }
-            return message?.Value;
+            
+            return JsonSerializer.Deserialize<EquipmentResponseModel>(message?.Value.Body);
         }
         catch (Exception ex)
         {

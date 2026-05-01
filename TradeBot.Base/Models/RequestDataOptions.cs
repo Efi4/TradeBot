@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace TradeBot.Core.Models;
+namespace TradeBot.Base.Models;
 
 public class RequestDataOptions
 {

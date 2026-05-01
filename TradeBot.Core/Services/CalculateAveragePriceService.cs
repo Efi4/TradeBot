@@ -4,7 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using TradeBot.Core.Interfaces;
-using TradeBot.Core.Models;
+using TradeBot.Base.Models;
 using TradeBot.Base;
 using TradeBot.Base.Objects;
 using Microsoft.Extensions.Options;
