@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Net.Http.Json;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using TradeBot.Base;
 using TradeBot.Base.Models;
 using TradeBot.Core.Interfaces;
-using Microsoft.Extensions.Options;
-using System.Net.Http.Json;
-using Humanizer;
-using TradeBot.Base;
-using System.Linq;
 
 namespace TradeBot.Core.Services;
 
@@ -25,25 +24,26 @@ public class DiscordIntegrationService : IDiscordIntegrationService
         _discordIntegrationOptions = discordIntegrationOptions;
     }
        
-    public async Task PostMessageInDedicatedChannelAsync(EquipmentResponseModel equipmentData)
+    public async Task PostMessageInDedicatedChannelAsync(EquipmentQueueMessageModel equipmentData)
     {
         var discordChannelPostRequest = PrepareRequest(equipmentData);
         var result = await _httpClient.SendAsync(discordChannelPostRequest);
         if(!result.IsSuccessStatusCode)
         {
-            _logger.LogWarning($"{nameof(DiscordIntegrationService)}: Unable to send a message for {Constants.EquipmentLookup.Mapping[equipmentData.ItemCode]} dedicated discord channel. Reason:{result.ReasonPhrase}");
+            _logger.LogWarning($"{nameof(DiscordIntegrationService)}: Unable to send a message for {Constants.EquipmentLookup.NameMapping[equipmentData.Item.ItemCode]} dedicated discord channel. Reason:{result.ReasonPhrase}");
         }
         _logger.LogDebug($"{nameof(DiscordIntegrationService)}: Message was succesfully sent in dedicated discord channel.");
     }
 
-    private HttpRequestMessage PrepareRequest(EquipmentResponseModel equipmentData)
+    private HttpRequestMessage PrepareRequest(EquipmentQueueMessageModel equipmentData)
     {
         var discordChannelPostRequest = new HttpRequestMessage(HttpMethod.Post, _discordIntegrationOptions.Value.WebHookUrl)
         {
             Content = new StringContent("{\"content\": \"Trade deal is available: " +
-            $"{Constants.EquipmentLookup.Mapping[equipmentData.ItemCode]}, {equipmentData.Price} gold, "+
-            $"{string.Join(",",equipmentData.Item.Skills.Values)},"+
-            $"<t:{new DateTimeOffset(equipmentData.CreatedAt).ToUnixTimeSeconds()}:R>"+
+            $"{Constants.EquipmentLookup.NameMapping[equipmentData.Item.ItemCode]}, {equipmentData.Price} gold, "+
+            $"{string.Join("-",equipmentData.Item.Skills.Values)},"+
+            $"<t:{new DateTimeOffset(equipmentData.CreatedAt).ToUnixTimeSeconds()}:R>,"+
+            $"possible margin {equipmentData.Margin}"+
             "\"}",
             System.Text.Encoding.UTF8, "application/json")
         };

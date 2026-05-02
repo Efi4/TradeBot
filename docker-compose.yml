@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -23,10 +21,10 @@ services:
     restart: always
     command: "azurite --skipApiVersionCheck --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0"
     network_mode: "host"
-    # ports:
-    #   - "10000:10000"
-    #   - "10001:10001"
-
+    volumes:
+      - azurite_data:/var/opt/azurite
 volumes:
   sqlserver_data:
+    driver: local
+  azurite_data:
     driver: local

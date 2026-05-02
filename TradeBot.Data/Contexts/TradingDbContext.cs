@@ -6,12 +6,8 @@ namespace TradeBot.Data.Contexts;
 /// <summary>
 /// Entity Framework Core DbContext for Trading database
 /// </summary>
-public class TradingDbContext : DbContext
+public class TradingDbContext(DbContextOptions<TradingDbContext> options) : DbContext(options)
 {
-    public TradingDbContext(DbContextOptions<TradingDbContext> options) : base(options)
-    {
-    }
-
     public DbSet<WeaponPrice> WeaponPrices { get; set; } = null!;
     public DbSet<ArmorPrice> ArmorPrices { get; set; } = null!;
     public DbSet<Weapon> Weapons { get; set; } = null!;

@@ -2,10 +2,10 @@ using System.Text.Json.Serialization;
 
 namespace TradeBot.Base.Models;
 
-public class EquipmentResponseModel
+public class EquipmentQueueMessageModel
 {
-    [JsonPropertyName("itemCode")]
-    public required string ItemCode { get; set; }
+    [JsonPropertyName("margin")]
+    public decimal Margin {get; set;}
     [JsonPropertyName("item")]
     public required ItemModel Item { get; set; }
     [JsonPropertyName("price")]

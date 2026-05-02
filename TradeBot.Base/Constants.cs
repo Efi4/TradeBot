@@ -26,12 +26,14 @@ public static class Constants
     }
     public static class WeaponStatRanges
     {
+        public const int MaxRifleAttack = 90;
         public const int MinSniperAttack = 101;
         public const int MaxSniperAttack = 130;
         public const int MinTankAttack = 141;
         public const int MaxTankAttack = 170;
         public const int MinJetAttack = 221;
         public const int MaxJetAttack = 300;
+        public const int MaxRifleCrit = 15;
         public const int MinSniperCrit = 16;
         public const int MaxSniperCrit = 20;
         public const int MinTankCrit = 26;
@@ -39,11 +41,26 @@ public static class Constants
         public const int MinJetCrit = 41;
         public const int MaxJetCrit = 50;
     }
+    public static class RareItemsBrowseLimits
+    {
+        public const int MinWeaponCrit = 14;
+        public const int MinWeaponDmg = 81;
+        public const int MinArmorStat = 14;
+        public const int MinHelmetStat = 45;
+    }
     public static class EquipmentLookup
     {
         public const string AttackStatName = "attack";
         public const string CritStatName = "criticalChance";
-        public static Dictionary<string, string> Mapping = new()
+        public static Dictionary<string, string> StatMapping = new()
+        {
+            {"helmet", "criticalDamages"},
+            {"chest", "armor"},
+            {"pants","armor"},
+            {"boots", "dodge"},
+            {"gloves", "precision"}
+        };
+        public static Dictionary<string, string> NameMapping = new()
         {
             {"helmet3", "Blue Helmet"},
             {"helmet4", "Purple Helmet"},

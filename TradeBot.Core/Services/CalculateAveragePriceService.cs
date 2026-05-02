@@ -1,22 +1,17 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Threading.Tasks;
+using System.Linq;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore;
+using EFCore.BulkExtensions;
 using TradeBot.Core.Interfaces;
 using TradeBot.Base.Models;
 using TradeBot.Base;
 using TradeBot.Base.Objects;
-using Microsoft.Extensions.Options;
-using System.Net;
-using System.Net.Http.Json;
-using System.Web;
-using System.Linq;
 using TradeBot.Data.Contexts;
 using TradeBot.Data.Models;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using EFCore.BulkExtensions;
-using Microsoft.EntityFrameworkCore;
 
 namespace TradeBot.Core.Services;
 
@@ -46,7 +41,7 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
         {
             var weaponList = await _dbContext.Weapons.ToListAsync();
             var averagePriceList = new List<WeaponPrice>();
-            for(int crit = Constants.WeaponStatRanges.MinSniperCrit; crit <= Constants.WeaponStatRanges.MaxJetCrit; crit++)
+            for(int crit = Constants.RareItemsBrowseLimits.MinWeaponCrit; crit <= Constants.WeaponStatRanges.MaxJetCrit; crit++)
             {
                 var attackRange = GetAttackRangeForCrit(crit);
                 if (attackRange is null)    
@@ -144,7 +139,8 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
 
     private (int, int)? GetAttackRangeForCrit(int crit) => crit switch
     {
-        <= Constants.WeaponStatRanges.MaxSniperCrit => (Constants.WeaponStatRanges.MinSniperAttack, Constants.WeaponStatRanges.MaxSniperAttack),
+        <= Constants.WeaponStatRanges.MaxRifleCrit => (Constants.RareItemsBrowseLimits.MinWeaponDmg, Constants.WeaponStatRanges.MaxRifleAttack),
+        > Constants.WeaponStatRanges.MaxRifleCrit and <= Constants.WeaponStatRanges.MaxSniperCrit => (Constants.WeaponStatRanges.MinSniperAttack, Constants.WeaponStatRanges.MaxSniperAttack),
         > Constants.WeaponStatRanges.MaxSniperCrit and < Constants.WeaponStatRanges.MinTankCrit => null,
         >= Constants.WeaponStatRanges.MinTankCrit and <= Constants.WeaponStatRanges.MaxTankCrit => (Constants.WeaponStatRanges.MinTankAttack, Constants.WeaponStatRanges.MaxTankAttack),
         > Constants.WeaponStatRanges.MaxTankCrit and < Constants.WeaponStatRanges.MinJetCrit => null,

@@ -1,23 +1,22 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-using TradeBot.Core.Interfaces;
-using TradeBot.Base;
-using TradeBot.Base.Objects;
-using TradeBot.Base.Models;
-using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Http.Json;
 using System.Web;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore;
 using TradeBot.Data.Contexts;
 using TradeBot.Data.Models;
-using System.Net.Http.Headers;
-using Microsoft.EntityFrameworkCore;
-using SQLitePCL;
 using TradeBot.Data.Helpers;
+using TradeBot.Core.Interfaces;
+using TradeBot.Base;
+using TradeBot.Base.Objects;
+using TradeBot.Base.Models;
+
 
 namespace TradeBot.Core.Services;
 
@@ -63,47 +62,12 @@ public class CheckThePricesService : ICheckThePricesService
         {
             var armorPricesCount = await _dbContext.ArmorPrices.CountAsync();
             _logger.LogDebug($"{nameof(CheckThePricesService)}: Found {armorPricesCount} prices of armor items.");
-            var weaponPricesCount = await _dbContext.WeaponPrices.CountAsync();
+            var weaponPricesCount = await _dbContext.WeaponPrices.CountAsync();  
             _logger.LogDebug($"{nameof(CheckThePricesService)}: Found {weaponPricesCount} prices of weapon items.");
-            
-            var list = new List<EquipmentResponseModel>()
-            {
-                new EquipmentResponseModel()
-                {
-                    ItemCode = "tank",
-                    Item = new ItemModel()
-                    {
-                        ItemCode = "tank",
-                        Skills = new Dictionary<string, int>()
-                        {
-                            {Constants.EquipmentLookup.AttackStatName, 170},
-                            {Constants.EquipmentLookup.CritStatName, 34 }
-                        }
-                    },
-                    CreatedAt = DateTime.Now,
-                    Price = 100m
-                },
-                new EquipmentResponseModel()
-                {
-                    ItemCode = "tank",
-                    Item = new ItemModel()
-                    {
-                        ItemCode = "tank",
-                        Skills = new Dictionary<string, int>()
-                        {
-                            {Constants.EquipmentLookup.AttackStatName, 150},
-                            {Constants.EquipmentLookup.CritStatName, 30 }
-                        }
-                    },
-                    CreatedAt = DateTime.Now,
-                    Price = 200m
-                }
-            };
-            await ProcessPossibleWeaponTradeDealsAsync(list);
-            return result;
+
             foreach(var weaponType in Enum.GetValues<WeaponType>())
             {
-                if (weaponType is not WeaponType.Tank) {continue;} //Add for testing purposes
+                if (weaponType is not WeaponType.Tank) {continue;} //Add for testing purposes ///TODO: REMOVE
                 var isSuccessful = await FetchAndStoreWeaponsAsync(weaponType);
                 if(isSuccessful) 
                 {
@@ -116,7 +80,7 @@ public class CheckThePricesService : ICheckThePricesService
 
             foreach(var armorType in Enum.GetValues<ArmorType>())
             {
-                if (armorType is not ArmorType.Helmet4) {continue;} //Add for testing purposes
+                if (armorType is not ArmorType.Helmet4) {continue;} //Add for testing purposes ///TODO: REMOVE
                 var isSuccessful = await FetchAndStoreArmorsAsync(armorType);
                 if(isSuccessful) 
                 {
@@ -151,12 +115,12 @@ public class CheckThePricesService : ICheckThePricesService
         {
             var itemCode = weaponType.ToString().ToLower();
             var weaponListRequest = PrepareRequest(itemCode);
-            _logger.LogDebug($"{nameof(CheckThePricesService)}: Making initial fetch POST request to get {Constants.EquipmentLookup.Mapping[itemCode]} weapon.");
+            _logger.LogDebug($"{nameof(CheckThePricesService)}: Making initial fetch POST request to get {Constants.EquipmentLookup.NameMapping[itemCode]} weapon.");
             var initialResponse = await _httpClient.SendAsync(weaponListRequest);
             
             if (!initialResponse.IsSuccessStatusCode)
             {
-                _logger.LogWarning($"{nameof(CheckThePricesService)}: Initial {Constants.EquipmentLookup.Mapping[itemCode]} weapon fetch request failed with status code: {initialResponse.StatusCode} and reason: {initialResponse.ReasonPhrase}");
+                _logger.LogWarning($"{nameof(CheckThePricesService)}: Initial {Constants.EquipmentLookup.NameMapping[itemCode]} weapon fetch request failed with status code: {initialResponse.StatusCode} and reason: {initialResponse.ReasonPhrase}");
                 return false;
             }
 
@@ -169,7 +133,7 @@ public class CheckThePricesService : ICheckThePricesService
             while(nextCursor != null)
             {
                 var batchWeaponRequest = PrepareBatchRequest(itemCode, nextCursor);
-                _logger.LogDebug($"{nameof(CheckThePricesService)}: Making {Constants.EquipmentLookup.Mapping[itemCode]} weapon batch fetch POST request with cursor: {nextCursor}");
+                _logger.LogDebug($"{nameof(CheckThePricesService)}: Making {Constants.EquipmentLookup.NameMapping[itemCode]} weapon batch fetch POST request with cursor: {nextCursor}");
                 
                 var nextBatchResponse = await _httpClient.SendAsync(batchWeaponRequest);
                 
@@ -194,12 +158,12 @@ public class CheckThePricesService : ICheckThePricesService
         {
             var itemCode = armorType.ToString().ToLower();
             var armorListRequest = PrepareRequest(itemCode);
-            _logger.LogDebug($"{nameof(CheckThePricesService)}: Making initial fetch POST request to get {Constants.EquipmentLookup.Mapping[itemCode]} armor items.");
+            _logger.LogDebug($"{nameof(CheckThePricesService)}: Making initial fetch POST request to get {Constants.EquipmentLookup.NameMapping[itemCode]} armor items.");
             var initialResponse = await _httpClient.SendAsync(armorListRequest);
             
             if (!initialResponse.IsSuccessStatusCode)
             {
-                _logger.LogWarning($"{nameof(CheckThePricesService)}: Initial {Constants.EquipmentLookup.Mapping[itemCode]} armor fetch request failed with status code: {initialResponse.StatusCode} and reason: {initialResponse.ReasonPhrase}");
+                _logger.LogWarning($"{nameof(CheckThePricesService)}: Initial {Constants.EquipmentLookup.NameMapping[itemCode]} armor fetch request failed with status code: {initialResponse.StatusCode} and reason: {initialResponse.ReasonPhrase}");
                 return false;
             }
 
@@ -212,7 +176,7 @@ public class CheckThePricesService : ICheckThePricesService
             while(nextCursor != null)
             {
                 var batchArmorRequest = PrepareBatchRequest(itemCode, nextCursor);
-                _logger.LogDebug($"{nameof(CheckThePricesService)}: Making armor batch fetch POST request to get {Constants.EquipmentLookup.Mapping[itemCode]} with cursor: {nextCursor}");
+                _logger.LogDebug($"{nameof(CheckThePricesService)}: Making armor batch fetch POST request to get {Constants.EquipmentLookup.NameMapping[itemCode]} with cursor: {nextCursor}");
                 
                 var nextBatchResponse = await _httpClient.SendAsync(batchArmorRequest);
                 
@@ -232,15 +196,7 @@ public class CheckThePricesService : ICheckThePricesService
 
     private HttpRequestMessage PrepareRequest(string itemCode)
     {
-        var equipmentListRequest = new HttpRequestMessage(HttpMethod.Post, _initialTransactionRequestUriBuilder.ToString())
-        {
-            Content = new StringContent("{\"0\":{\"itemCode\":"
-            +$"\"{itemCode}\",\"limit\":12,\"direction\":\"forward\""
-            +"},\"1\":{\"itemCode\":"
-            +$"\"{itemCode}\",\"limit\":10,\"transactionType\":\"itemMarket\","
-            +"\"direction\":\"forward\"}}",
-            System.Text.Encoding.UTF8, "application/json")
-        };
+        var equipmentListRequest = GetRequestContent(itemCode);
 
         foreach (var header in _headers)
         {
@@ -257,15 +213,46 @@ public class CheckThePricesService : ICheckThePricesService
         return equipmentListRequest;
     }
 
-    private HttpRequestMessage PrepareBatchRequest(string itemCode, string nextCursor)
+    private HttpRequestMessage GetRequestContent(string itemCode)
     {
-        var batchWeaponRequest = new HttpRequestMessage(HttpMethod.Post, _batchRequestUriBuilder.ToString())
+        if(itemCode.Equals("rifle",StringComparison.OrdinalIgnoreCase))
+        {
+            return new HttpRequestMessage(HttpMethod.Post, _batchRequestUriBuilder.ToString())
+            {
+                Content = new StringContent("{\"0\":{\"itemCode\":"
+                +$"\"{itemCode}\",\"limit\":12,\"direction\":\"forward\","
+                +"\"minSkills\": {"
+                +$"\"criticalChance\": {Constants.RareItemsBrowseLimits.MinWeaponCrit},\"attack\": {Constants.RareItemsBrowseLimits.MinWeaponDmg}"
+                +"}}}",
+                System.Text.Encoding.UTF8, "application/json")
+            };
+        }
+        if(itemCode[^1..].Equals("3"))
+        {
+            return new HttpRequestMessage(HttpMethod.Post, _batchRequestUriBuilder.ToString())
+            {
+                Content = new StringContent("{\"0\":{\"itemCode\":"
+                +$"\"{itemCode}\",\"limit\":12,\"direction\":\"forward\","
+                +"\"minSkills\": {"
+                +$"\"{Constants.EquipmentLookup.StatMapping[itemCode[..^1]]}\": {(itemCode.Equals("helmet3") ? Constants.RareItemsBrowseLimits.MinHelmetStat : Constants.RareItemsBrowseLimits.MinArmorStat)}"
+                +"}}}",
+                System.Text.Encoding.UTF8, "application/json")
+            };
+        }
+        return  new HttpRequestMessage(HttpMethod.Post, _initialTransactionRequestUriBuilder.ToString())
         {
             Content = new StringContent("{\"0\":{\"itemCode\":"
-            +$"\"{itemCode}\",\"limit\":12,\"cursor\":\"{nextCursor}\","
+            +$"\"{itemCode}\",\"limit\":12,\"direction\":\"forward\""
+            +"},\"1\":{\"itemCode\":"
+            +$"\"{itemCode}\",\"limit\":10,\"transactionType\":\"itemMarket\","
             +"\"direction\":\"forward\"}}",
             System.Text.Encoding.UTF8, "application/json")
-        };
+        };        
+    }
+
+    private HttpRequestMessage PrepareBatchRequest(string itemCode, string nextCursor)
+    {
+        var batchWeaponRequest = GetBatchRequestContent(itemCode, nextCursor);
         
         foreach (var header in _headers)
         {
@@ -282,25 +269,67 @@ public class CheckThePricesService : ICheckThePricesService
         return batchWeaponRequest;
     }
 
+        private HttpRequestMessage GetBatchRequestContent(string itemCode, string nextCursor)
+    {
+        if(itemCode.Equals("rifle",StringComparison.OrdinalIgnoreCase))
+        {
+            return new HttpRequestMessage(HttpMethod.Post, _batchRequestUriBuilder.ToString())
+            {
+                Content = new StringContent("{\"0\":{\"itemCode\":"
+                +$"\"{itemCode}\",\"limit\":12,\"cursor\":\"{nextCursor}\",\"direction\":\"forward\","
+                +"\"minSkills\": {"
+                +$"\"criticalChance\": {Constants.RareItemsBrowseLimits.MinWeaponCrit},\"attack\": {Constants.RareItemsBrowseLimits.MinWeaponDmg}"
+                +"}}}",
+                System.Text.Encoding.UTF8, "application/json")
+            };
+        }
+        if(itemCode[^1..].Equals("3"))
+        {
+            return new HttpRequestMessage(HttpMethod.Post, _batchRequestUriBuilder.ToString())
+            {
+                Content = new StringContent("{\"0\":{\"itemCode\":"
+                +$"\"{itemCode}\",\"limit\":12,\"cursor\":\"{nextCursor}\",\"direction\":\"forward\","
+                +"\"minSkills\": {"
+                +$"\"{Constants.EquipmentLookup.StatMapping[itemCode[..^1]]}\": {(itemCode.Equals("helmet3") ? Constants.RareItemsBrowseLimits.MinHelmetStat : Constants.RareItemsBrowseLimits.MinArmorStat)}"
+                +"}}}",
+                System.Text.Encoding.UTF8, "application/json")
+            };
+        }
+        return  new HttpRequestMessage(HttpMethod.Post, _batchRequestUriBuilder.ToString())
+        {
+            Content = new StringContent("{\"0\":{\"itemCode\":"
+            +$"\"{itemCode}\",\"limit\":12,\"cursor\":\"{nextCursor}\","
+            +"\"direction\":\"forward\"}}",
+            System.Text.Encoding.UTF8, "application/json")
+        };        
+    }
+
     private void PrepareQuerryStringParameters()
     {
-            var query = HttpUtility.ParseQueryString(_initialTransactionRequestUriBuilder.Query);
-            query["batch"] = "1";
-            _initialTransactionRequestUriBuilder.Query = query.ToString();
-            _batchRequestUriBuilder.Query = query.ToString();
-            _initialTransactionRequestUriBuilder.Port = -1; // Ensure default port is being added based on the schema (http/https)
-            _batchRequestUriBuilder.Port = -1; 
+        var query = HttpUtility.ParseQueryString(_initialTransactionRequestUriBuilder.Query);
+        query["batch"] = "1";
+        _initialTransactionRequestUriBuilder.Query = query.ToString();
+        _batchRequestUriBuilder.Query = query.ToString();
+        _initialTransactionRequestUriBuilder.Port = -1; // Ensure default port is being added based on the schema (http/https)
+        _batchRequestUriBuilder.Port = -1; 
     }
 
     private void FillWeaponCollection(List<EquipmentResponseModel> weaponList)
     {
-        weaponList.ForEach(item => _weapons.Add(new Weapon
+        foreach(var item in weaponList)
         {
-            Type = Enum.Parse<WeaponType>(item.ItemCode, ignoreCase: true),
-            Price = item.Price,
-            Attack = item.Item.Skills[Constants.EquipmentLookup.AttackStatName],
-            Crit = item.Item.Skills[Constants.EquipmentLookup.CritStatName]
-        }));
+            if (item.Price > 2000m) 
+            {
+                continue;
+            }
+            _weapons.Add(new Weapon
+            {
+                Type = Enum.Parse<WeaponType>(item.ItemCode, ignoreCase: true),
+                Price = item.Price,
+                Attack = item.Item.Skills[Constants.EquipmentLookup.AttackStatName],
+                Crit = item.Item.Skills[Constants.EquipmentLookup.CritStatName]
+            });
+        }
     }
 
     private void FillArmorCollection(List<EquipmentResponseModel> armorList)    
@@ -370,17 +399,22 @@ public class CheckThePricesService : ICheckThePricesService
         foreach(var position in equipment)
         {
             var armorType = Enum.Parse<ArmorType>(position.Item.ItemCode, ignoreCase: true);
-            bool isApplicableForDeal = await _dbContext.ArmorPrices.Where(ar => 
-                ar.Type == armorType &&
-                ar.Stat == position.Item.Skills.First().Value &&
-                position.Price < (ar.Price * 1.1m) )
-                .AnyAsync();
+            var averagePrice = _dbContext.ArmorPrices.SingleOrDefault(
+                w=> w.Type == armorType &&
+                w.Stat == position.Item.Skills.First().Value)?.Price;
             
-            if(isApplicableForDeal)
+            if(averagePrice is not null && position.Price < averagePrice*0.9m)
             {
                 try
                 {
-                    await _azureStorageHelper.PushToQueueEncodedAsync(position);
+                    await _azureStorageHelper.PushToQueueEncodedAsync(new EquipmentQueueMessageModel()
+                    {
+                        Item = position.Item,
+                        Price = position.Price,
+                        CreatedAt = position.CreatedAt,
+                        Margin = Math.Round( (decimal) (0.99m*averagePrice-1.01m*position.Price),3)
+                    });
+                    _dealsFound++;
                 }
                 catch(Exception ex)
                 {
@@ -396,18 +430,23 @@ public class CheckThePricesService : ICheckThePricesService
             var weaponType = Enum.Parse<WeaponType>(position.Item.ItemCode, ignoreCase: true);
             var attack = position.Item.Skills[Constants.EquipmentLookup.AttackStatName];
             var crit = position.Item.Skills[Constants.EquipmentLookup.CritStatName];
-            bool isApplicableForDeal = await _dbContext.WeaponPrices.Where(w => 
-                w.Type == weaponType &&
+            var averagePrice = _dbContext.WeaponPrices.SingleOrDefault(
+                w=> w.Type == weaponType &&
                 w.Attack == attack &&
-                w.Crit == crit &&
-                position.Price < (w.Price * 1.1m) )
-                .AnyAsync();
+                w.Crit == crit)?.Price;
             
-            if(isApplicableForDeal)
+            if (averagePrice is not null && position.Price < averagePrice*0.9m)
             {
                 try
                 {
-                    await _azureStorageHelper.PushToQueueEncodedAsync(position);
+                    await _azureStorageHelper.PushToQueueEncodedAsync(new EquipmentQueueMessageModel()
+                    {
+                        Item = position.Item,
+                        Price = position.Price,
+                        CreatedAt = position.CreatedAt,
+                        Margin = Math.Round( (decimal) (0.99m*averagePrice - 1.01m*position.Price),3)
+                    });
+                    _dealsFound++;
                 }
                 catch(Exception ex)
                 {

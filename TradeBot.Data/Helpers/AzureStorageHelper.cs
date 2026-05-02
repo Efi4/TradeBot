@@ -106,7 +106,7 @@ public class AzureStorageHelper : IAzureStorageHelper
     /// <summary>
     /// Pushes an encoded message to the queue
     /// </summary>
-    public async Task PushToQueueEncodedAsync(EquipmentResponseModel equipment)
+    public async Task PushToQueueEncodedAsync(EquipmentQueueMessageModel equipmentMessage)
     {
         try
         {
@@ -114,7 +114,7 @@ public class AzureStorageHelper : IAzureStorageHelper
             {
                 throw new InvalidOperationException("Queue client not initialized. Initialize with queue name in constructor.");
             }
-            string jsonMessage = JsonSerializer.Serialize(equipment);
+            string jsonMessage = JsonSerializer.Serialize(equipmentMessage);
             string base64Encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(jsonMessage));
             await _queueClient.SendMessageAsync(base64Encoded);
         }
@@ -172,7 +172,7 @@ public class AzureStorageHelper : IAzureStorageHelper
     /// <summary>
     /// Reads multiple messages from the queue
     /// </summary>
-    public async Task<IEnumerable<QueueMessage>> ReadFromQueueAsync(int maxMessages)
+    public async Task<IEnumerable<QueueMessage>?> ReadFromQueueAsync(int maxMessages)
     {
         try
         {

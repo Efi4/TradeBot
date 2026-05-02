@@ -15,11 +15,11 @@ public class TradingDbContextFactory : IDesignTimeDbContextFactory<TradingDbCont
     public TradingDbContext CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<TradingDbContext>();
-        var environment = Environment.GetEnvironmentVariable("AZURE_FUNCTIONS_ENVIRONMENT");
-        if(environment == "Development")
-        {
-            EnvironmentConfiguration.LoadEnvironment();
-        }
+        // var environment = Environment.GetEnvironmentVariable("AZURE_FUNCTIONS_ENVIRONMENT");
+        // if(environment == "Development")
+        // {
+        //     EnvironmentConfiguration.LoadEnvironment();
+        // }
         // Load connection string from environment
         var connectionString = Environment.GetEnvironmentVariable(Constants.EnvironmentVariables.LocalSqlConnectionStringEnvironmentVariableName);
 
