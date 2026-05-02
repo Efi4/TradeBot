@@ -27,11 +27,11 @@ namespace AzureFunctionApp.Functions
         public async Task<HttpResponseData> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "hello")] HttpRequestData req)
         {
-            _logger.LogInformation("HTTP trigger function processed a request.");
+            _logger.LogDebug("HTTP trigger function processed a request.");
 
             // CheckPricesResult result = await _priceService.CheckPricesAsync();
             await _averagePriceService.CalculateAverageWeaponPricesAsync();
-            // await _averagePriceService.CalculateAverageArmorPricesAsync();
+            await _averagePriceService.CalculateAverageArmorPricesAsync();
             var response = req.CreateResponse(HttpStatusCode.OK);
             // await response.WriteStringAsync(result.ToString());
             return response;

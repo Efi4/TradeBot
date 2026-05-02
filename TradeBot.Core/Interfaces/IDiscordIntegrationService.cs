@@ -5,6 +5,6 @@ namespace TradeBot.Core.Interfaces
 {
     public interface IDiscordIntegrationService
     {
-        Task<bool> PostMessageInDedicatedChannelAsync(EquipmentResponseModel equipmentData);
+        Task PostMessageInDedicatedChannelAsync(EquipmentResponseModel equipmentData);
     }
 }

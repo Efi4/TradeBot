@@ -21,7 +21,7 @@ namespace AzureFunctionApp.Functions
         public async Task Run(
             [TimerTrigger("0 0 */2 * * *")] TimerInfo myTimer)
         {
-            _logger.LogInformation($"{nameof(CalculateAveragePrices)}: Timer trigger function executed at: {DateTime.Now}");
+            _logger.LogDebug($"{nameof(CalculateAveragePrices)}: Timer trigger function executed at: {DateTime.Now}");
             
             try
             {
@@ -29,7 +29,7 @@ namespace AzureFunctionApp.Functions
                 bool isArmorPartSuccess = await _priceService.CalculateAverageArmorPricesAsync();
                 if(isArmorPartSuccess && isWeaponPartSuccess)
                 {
-                    _logger.LogInformation($"Average price calculation succeeded.");
+                    _logger.LogDebug($"Average price calculation succeeded.");
                 }
             }
             catch (Exception ex)
@@ -39,7 +39,7 @@ namespace AzureFunctionApp.Functions
 
             if (myTimer.ScheduleStatus is not null)
             {
-                _logger.LogInformation($"Next timer schedule: {myTimer.ScheduleStatus.Next}");
+                _logger.LogDebug($"Next timer schedule: {myTimer.ScheduleStatus.Next}");
             }
         }
     }

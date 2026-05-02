@@ -35,11 +35,11 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
 
     public async Task<bool> CalculateAverageWeaponPricesAsync()
     {
-        _logger.LogInformation("Starting to calculate average weapon prices...");
+        _logger.LogDebug($"{nameof(CalculateAveragePriceService)}: Starting to calculate average weapon prices...");
         var weaponCount = await _dbContext.Weapons.CountAsync();
         if(weaponCount == 0)
         {
-            _logger.LogError("No weapon items were found in the database. Calculating average price is not possible.");
+            _logger.LogError($"{nameof(CalculateAveragePriceService)}: No weapon items were found in the database. Calculating average price is not possible.");
             return false;
         }
         try
@@ -49,7 +49,10 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
             for(int crit = Constants.WeaponStatRanges.MinSniperCrit; crit <= Constants.WeaponStatRanges.MaxJetCrit; crit++)
             {
                 var attackRange = GetAttackRangeForCrit(crit);
-                if (attackRange is null)    continue;
+                if (attackRange is null)    
+                {
+                    continue;
+                }
 
                 var (minAttack, maxAttack) = attackRange.Value;
 
@@ -58,6 +61,7 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
                     var weaponPositions = weaponList.Where(w => w.Attack == attack && w.Crit == crit).ToList();
                     if(weaponPositions.Count == 0)
                     {
+                        _logger.LogDebug($"{nameof(CalculateAveragePriceService)}: No weapons with stats{attack}-{crit} were found.");
                         continue;
                     }
                     var averageWeaponPrice = weaponPositions.Sum(w => w.Price) / weaponPositions.Count;
@@ -72,11 +76,11 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
             }
             await _dbContext.BulkInsertOrUpdateAsync(averagePriceList);
             await _dbContext.SaveChangesAsync();
-            _logger.LogInformation("Average prices for weapons was updated with relevant values.");
+            _logger.LogDebug($"{nameof(CalculateAveragePriceService)}: Average prices for weapons was updated with relevant values.");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while calculating average price for weapons.");
+            _logger.LogError(ex, $"{nameof(CalculateAveragePriceService)}: an error occurred while calculating average price for weapons.");
             return false;
         }
         return true;
@@ -87,10 +91,10 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
         var armorCount = await _dbContext.Armors.CountAsync();
         if(armorCount == 0)
         {
-            _logger.LogError("No armor items were found in the database. Calculating average price is not possible.");
+            _logger.LogError($"{nameof(CalculateAveragePriceService)}: No armor items were found in the database. Calculating average price is not possible.");
             return false;
         }
-        _logger.LogInformation("Starting to calculate average armor prices...");
+        _logger.LogDebug($"{nameof(CalculateAveragePriceService)}: Starting to calculate average armor prices...");
         try
         {
             var averagePriceList = new List<ArmorPrice>();   
@@ -99,13 +103,13 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
                 var armorStatRange = _statRangeOptions.Value.ArmorStatRanges.Find(ar => ar.Name == armorType);
                 if(armorStatRange == null) 
                 {
-                    _logger.LogWarning($"Stat range for armor type {armorType} was not found in configuration. Average price calculation for this position will be skipped.");
+                    _logger.LogWarning($"{nameof(CalculateAveragePriceService)}: Stat range for armor type {armorType} was not found in configuration. Average price calculation for this position will be skipped.");
                     continue;
                 }
                 var armorTypeExists = await _dbContext.Armors.AnyAsync(ar => ar.Type == armorType);
                 if(!armorTypeExists)
                 {
-                    _logger.LogWarning($"Armor items for type {armorType} was not found in database. Average price calculation for this position will be skipped.");
+                    _logger.LogWarning($"{nameof(CalculateAveragePriceService)}: Armor items for type {armorType} was not found in database. Average price calculation for this position will be skipped.");
                     continue;
                 }
 
@@ -114,7 +118,7 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
                     var armorItemsPerTypePerStat = await _dbContext.Armors.Where(ar => ar.Type == armorType && ar.Stat == i).ToListAsync();
                     if( armorItemsPerTypePerStat == null || armorItemsPerTypePerStat.Count == 0)
                     {
-                        _logger.LogInformation($"No items of type '{armorType}' was not found for stat '{i}'. Average price calculation for this position will be skipped.");
+                        _logger.LogDebug($"{nameof(CalculateAveragePriceService)}: No items of type '{armorType}' was not found for stat '{i}'. Average price calculation for this position will be skipped.");
                          continue;
                     }
                     var averageArmorPrice = armorItemsPerTypePerStat.Sum(w => w.Price) / armorItemsPerTypePerStat.Count;
@@ -125,15 +129,14 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
                         Price = averageArmorPrice         
                     });
                 }
-                if(averagePriceList.Count > 0) _logger.LogInformation($"Average prices for armor items {armorType} was processed. And example price '{averagePriceList.Last().Price}' for stat '{averagePriceList.Last().Stat}'.");
             }
             await _dbContext.BulkInsertOrUpdateAsync(averagePriceList);
             await _dbContext.SaveChangesAsync();
-            _logger.LogInformation("Average prices for armor items was updated with relevant values.");
+            _logger.LogDebug($"{nameof(CalculateAveragePriceService)}: Average prices for armor items was updated with relevant values.");
          }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while calculating average price of armor items.");
+            _logger.LogError(ex, $"{nameof(CalculateAveragePriceService)}: An error occurred while calculating average price of armor items.");
             return false;
         }
         return true;

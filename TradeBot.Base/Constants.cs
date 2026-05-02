@@ -8,6 +8,17 @@ public static class Constants
         public const string AzureSqlConnectionStringEnvironmentVariableName = "SQLAZURECONNSTR_tradingDatabase";
         public const string LocalSqlConnectionStringEnvironmentVariableName = "ConnectionStrings__tradingDatabase";
     }
+    public static class Appsettings
+    {
+        public const string RequestDataOptionsSectionName = "RequestDataOptions";
+        public const string StatRangeOptionsSectionName = "StatRangeOptions";
+        public const string DiscordIntegrationOptionsSectionName = "DiscordIntegrationOptions";
+    }
+    public static class AlternativeHeaders
+    {
+        public const string BatchRequestPathDictionaryKey = "%3Apath";
+        public const string BatchRequestPathDictionaryValue = "/trpc/itemOffer.getItemOffers?batch=1";
+    }
     public static class AzureStorageConfiguration
     {
         public const string TradeDealsQueueName = "trade-deals";
@@ -46,14 +57,14 @@ public static class Constants
             {"chest4", "Purple Chest"},
             {"chest5", "Legendary Chest"},
             {"chest6", "Mythic Chest"},
-            {"gloves3", "Blue Gloves3"},
-            {"gloves4", "Purple Gloves3"},
-            {"gloves5", "Legendary Gloves3"},
-            {"gloves6", "Mythic Gloves3"},
-            {"pants3", "Blue Pants3"},
-            {"pants4", "Purple Pants3"},
-            {"pants5", "Legendary Pants3"},
-            {"pants6", "Mythic Pants3"},
+            {"gloves3", "Blue Gloves"},
+            {"gloves4", "Purple Gloves"},
+            {"gloves5", "Legendary Gloves"},
+            {"gloves6", "Mythic Gloves"},
+            {"pants3", "Blue Pants"},
+            {"pants4", "Purple Pants"},
+            {"pants5", "Legendary Pants"},
+            {"pants6", "Mythic Pants"},
             {"rifle", "Blue Rifle"},
             {"sniper", "Purple Sniper Gun"},
             {"tank", "Legendary Tank"},

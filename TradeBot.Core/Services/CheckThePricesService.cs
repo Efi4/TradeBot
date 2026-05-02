@@ -38,8 +38,8 @@ public class CheckThePricesService : ICheckThePricesService
     public CheckThePricesService(ILogger<CheckThePricesService> logger, HttpClient httpClient, IOptions<RequestDataOptions> requestData, TradingDbContext dbContext, IAzureStorageHelper azureStorageHelper)
     {
         var handler = new HttpClientHandler { AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate};
-        _logger = logger;
         _httpClient = new HttpClient(handler) {Timeout = TimeSpan.FromSeconds(30)};
+        _logger = logger;
         _requestData = requestData;
         _dbContext = dbContext;
         _azureStorageHelper = azureStorageHelper;
@@ -52,26 +52,20 @@ public class CheckThePricesService : ICheckThePricesService
 
     public async Task<CheckPricesResult> CheckPricesAsync()
     {
-        _logger.LogInformation("Clearing equipment tables.");
+        _logger.LogDebug($"{nameof(CheckThePricesService)}: Clearing equipment tables.");
         // await ClearEquipmentTables();
 
         PrepareQuerryStringParameters();
 
-        _logger.LogInformation("Starting to check prices...");
+        _logger.LogDebug($"{nameof(CheckThePricesService)}: Starting to check prices...");
         var result = new CheckPricesResult();
         try
         {
-            var armorCount = await _dbContext.ArmorPrices.CountAsync();
-             _logger.LogInformation($"Found {armorCount} prices.");
-            if(armorCount == 0)
-            {
-                _logger.LogError("No armor items were found in the database. Calculating average price is not possible.");
-            }
-            var currentPrices = await _dbContext.WeaponPrices.ToListAsync();
-            foreach(var price in currentPrices)
-            {
-                _logger.LogInformation($"{price.Attack}-{price.Crit}.Price={price.Price}");
-            }
+            var armorPricesCount = await _dbContext.ArmorPrices.CountAsync();
+            _logger.LogDebug($"{nameof(CheckThePricesService)}: Found {armorPricesCount} prices of armor items.");
+            var weaponPricesCount = await _dbContext.WeaponPrices.CountAsync();
+            _logger.LogDebug($"{nameof(CheckThePricesService)}: Found {weaponPricesCount} prices of weapon items.");
+            
             var list = new List<EquipmentResponseModel>()
             {
                 new EquipmentResponseModel()
@@ -134,17 +128,17 @@ public class CheckThePricesService : ICheckThePricesService
             result.Messages.Add($"{_armors.Count} armor items were added in database.");
 
             result.ItemsChecked = _weapons.Count + _armors.Count;
-            _logger.LogInformation($"Items checked: {result.ItemsChecked}");  
+            _logger.LogDebug($"{nameof(CheckThePricesService)}: Items checked: {result.ItemsChecked}");  
             result.DealsFound = _dealsFound;
-            _logger.LogInformation($"Found deals:{_dealsFound}");            
+            _logger.LogDebug($"{nameof(CheckThePricesService)}: Found deals:{_dealsFound}");            
 
             result.Success = true;
-            _logger.LogInformation($"Price check completed");
+            _logger.LogDebug($"{nameof(CheckThePricesService)}: Price check completed");
             return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error checking prices: {ex.Message}");
+            _logger.LogError($"{nameof(CheckThePricesService)}: Error checking prices: {ex.Message}");
             result.Messages.Add($"Exception {ex.Message} was cought during execution of {nameof(CheckPricesAsync)}");
             result.Success = false;
             return result;
@@ -157,16 +151,15 @@ public class CheckThePricesService : ICheckThePricesService
         {
             var itemCode = weaponType.ToString().ToLower();
             var weaponListRequest = PrepareRequest(itemCode);
-            _logger.LogInformation($"Making initial fetch POST request to {weaponListRequest.RequestUri} to get {itemCode} weapon.");
+            _logger.LogDebug($"{nameof(CheckThePricesService)}: Making initial fetch POST request to get {Constants.EquipmentLookup.Mapping[itemCode]} weapon.");
             var initialResponse = await _httpClient.SendAsync(weaponListRequest);
             
             if (!initialResponse.IsSuccessStatusCode)
             {
-                _logger.LogWarning($"Initial weapon fetch request failed with status code: {initialResponse.StatusCode}");
+                _logger.LogWarning($"{nameof(CheckThePricesService)}: Initial {Constants.EquipmentLookup.Mapping[itemCode]} weapon fetch request failed with status code: {initialResponse.StatusCode} and reason: {initialResponse.ReasonPhrase}");
                 return false;
             }
 
-            _logger.LogInformation($"Initial weapon request successful: {initialResponse.StatusCode}");
             var initialData = await ParseResponseContent(initialResponse.Content);
             await ProcessPossibleWeaponTradeDealsAsync(initialData.ItemsModel);
 
@@ -176,7 +169,7 @@ public class CheckThePricesService : ICheckThePricesService
             while(nextCursor != null)
             {
                 var batchWeaponRequest = PrepareBatchRequest(itemCode, nextCursor);
-                _logger.LogInformation($"Making weapon batch fetch POST request to {batchWeaponRequest.RequestUri} with cursor: {nextCursor}");
+                _logger.LogDebug($"{nameof(CheckThePricesService)}: Making {Constants.EquipmentLookup.Mapping[itemCode]} weapon batch fetch POST request with cursor: {nextCursor}");
                 
                 var nextBatchResponse = await _httpClient.SendAsync(batchWeaponRequest);
                 
@@ -189,7 +182,7 @@ public class CheckThePricesService : ICheckThePricesService
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Fetch of weapons resulted in error: {ex.Message}");
+            _logger.LogError($"{nameof(CheckThePricesService)}: Fetch of weapons resulted in error: {ex.Message}");
         }
 
         return true;
@@ -201,16 +194,15 @@ public class CheckThePricesService : ICheckThePricesService
         {
             var itemCode = armorType.ToString().ToLower();
             var armorListRequest = PrepareRequest(itemCode);
-            _logger.LogInformation($"Making initial fetch POST request to {armorListRequest.RequestUri} to get {itemCode} armor items.");
+            _logger.LogDebug($"{nameof(CheckThePricesService)}: Making initial fetch POST request to get {Constants.EquipmentLookup.Mapping[itemCode]} armor items.");
             var initialResponse = await _httpClient.SendAsync(armorListRequest);
             
             if (!initialResponse.IsSuccessStatusCode)
             {
-                _logger.LogWarning($"Initial armor fetch request failed with status code: {initialResponse.StatusCode}");
+                _logger.LogWarning($"{nameof(CheckThePricesService)}: Initial {Constants.EquipmentLookup.Mapping[itemCode]} armor fetch request failed with status code: {initialResponse.StatusCode} and reason: {initialResponse.ReasonPhrase}");
                 return false;
             }
 
-            _logger.LogInformation($"Initial armor request successful: {initialResponse.StatusCode}");
             var initialData = await ParseResponseContent(initialResponse.Content);
             await ProcessPossibleArmorTradeDealsAsync(initialData.ItemsModel);
  
@@ -220,7 +212,7 @@ public class CheckThePricesService : ICheckThePricesService
             while(nextCursor != null)
             {
                 var batchArmorRequest = PrepareBatchRequest(itemCode, nextCursor);
-                _logger.LogInformation($"Making armor batch fetch POST request to {batchArmorRequest.RequestUri} with cursor: {nextCursor}");
+                _logger.LogDebug($"{nameof(CheckThePricesService)}: Making armor batch fetch POST request to get {Constants.EquipmentLookup.Mapping[itemCode]} with cursor: {nextCursor}");
                 
                 var nextBatchResponse = await _httpClient.SendAsync(batchArmorRequest);
                 
@@ -232,7 +224,7 @@ public class CheckThePricesService : ICheckThePricesService
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Fetch of armors resulted in error: {ex.Message}");
+            _logger.LogError($"{nameof(CheckThePricesService)}: Fetch of armors resulted in error: {ex.Message}");
         }
 
         return true;
@@ -257,10 +249,11 @@ public class CheckThePricesService : ICheckThePricesService
         _headers.TryGetValue("Cookie", out var cookieHeader);
         if (!string.IsNullOrEmpty(cookieHeader))
         {
-            _logger.LogInformation($"Found cookie in secrets, starts with: {cookieHeader.Substring(0, 10)}...");
+            _logger.LogDebug($"{nameof(CheckThePricesService)}: Found cookie in secrets, starts with: {cookieHeader.Substring(0, 10)}...");
         }
-        else _logger.LogWarning($"Error: No cookie found in secrets");
-
+        else _logger.LogWarning($"{nameof(CheckThePricesService)}: No cookie found in secrets!");
+        
+        _logger.LogDebug($"{nameof(CheckThePricesService)}: Initial request prepared.");
         return equipmentListRequest;
     }
 
@@ -276,12 +269,16 @@ public class CheckThePricesService : ICheckThePricesService
         
         foreach (var header in _headers)
         {
-            if(header.Key.Equals("%3Apath", StringComparison.OrdinalIgnoreCase))
+            if(header.Key.Equals(Constants.AlternativeHeaders.BatchRequestPathDictionaryKey, StringComparison.OrdinalIgnoreCase))
             {
-                batchWeaponRequest.Headers.Add(header.Key, "/trpc/itemOffer.getItemOffers?batch=1");
+                batchWeaponRequest.Headers.Add(Constants.AlternativeHeaders.BatchRequestPathDictionaryKey, Constants.AlternativeHeaders.BatchRequestPathDictionaryValue);
             }
-            else if(!String.IsNullOrEmpty(header.Value))  batchWeaponRequest.Headers.Add(header.Key, header.Value);
+            else if(!String.IsNullOrEmpty(header.Value))  
+            {
+                batchWeaponRequest.Headers.Add(header.Key, header.Value);
+            }
         }
+        _logger.LogDebug($"{nameof(CheckThePricesService)}: Batch request prepared.");
         return batchWeaponRequest;
     }
 
@@ -321,10 +318,9 @@ public class CheckThePricesService : ICheckThePricesService
         var parsedContent = await content.ReadFromJsonAsync<List<ItemMarketResponseModel>>();
         if(parsedContent == null)
         {
-            _logger.LogError("Failed to deserialize response content");
-            throw new Exception("Failed to deserialize response content");
+            throw new Exception($"{nameof(CheckThePricesService)}: Failed to deserialize response content");
         }
-
+        _logger.LogDebug($"{nameof(CheckThePricesService)}: Equipment response deserialized successfully.");
         return parsedContent[0].Result.Data;
     }
 
@@ -334,11 +330,11 @@ public class CheckThePricesService : ICheckThePricesService
         {
             await _dbContext.Weapons.AddRangeAsync(weapons);
             await _dbContext.SaveChangesAsync();
-            _logger.LogInformation($"Successfully inserted {weapons.Count} weapons into database");
+            _logger.LogDebug($"{nameof(CheckThePricesService)}: Successfully inserted {weapons.Count} weapons into database");
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error inserting weapons into database: {ex.Message}");
+            _logger.LogError($"{nameof(CheckThePricesService)}: Error inserting weapons into database: {ex.Message}");
         }
     }
 
@@ -348,11 +344,11 @@ public class CheckThePricesService : ICheckThePricesService
         {
             await _dbContext.Armors.AddRangeAsync(armors);
             await _dbContext.SaveChangesAsync();
-            _logger.LogInformation($"Successfully inserted {armors.Count} armors into database");
+            _logger.LogDebug($"{nameof(CheckThePricesService)}: Successfully inserted {armors.Count} armors into database");
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error inserting armors into database: {ex.Message}");
+            _logger.LogError($"{nameof(CheckThePricesService)}: Error inserting armors into database: {ex.Message}");
         }
     }
 
@@ -365,7 +361,7 @@ public class CheckThePricesService : ICheckThePricesService
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error clearing equipment tables: {ex.Message}");
+            _logger.LogError($"{nameof(CheckThePricesService)}: Error clearing equipment tables: {ex.Message}");
         }
     }
 
@@ -384,12 +380,11 @@ public class CheckThePricesService : ICheckThePricesService
             {
                 try
                 {
-                    _logger.LogInformation($"{position.ItemCode}' with stat='{position.Item.Skills.First().Value}' and price '{position.Price}' listed at {position.CreatedAt} can be bought with margin >10%");
                     await _azureStorageHelper.PushToQueueEncodedAsync(position);
                 }
                 catch(Exception ex)
                 {
-                    _logger.LogError(ex.Message + " " + ex.InnerException?.Message + ex.InnerException?.InnerException?.Message + " \nStack trace: " + ex.StackTrace);
+                    _logger.LogError($"{nameof(CheckThePricesService)}: Armor deal message was not pushed in queue, exception: {ex.Message}");
                 }
             }
         }
@@ -412,12 +407,11 @@ public class CheckThePricesService : ICheckThePricesService
             {
                 try
                 {
-                    _logger.LogInformation($"{position.ItemCode}' with stats'{attack}-{crit}' and price '{position.Price}' listed at {position.CreatedAt} can be bought with margin >10%");
                     await _azureStorageHelper.PushToQueueEncodedAsync(position);
                 }
                 catch(Exception ex)
                 {
-                    _logger.LogError(ex.Message + " " + ex.InnerException?.Message + ex.InnerException?.InnerException?.Message + " \nStack trace: " + ex.StackTrace);
+                    _logger.LogError($"{nameof(CheckThePricesService)}: Weapon deal message was not pushed in queue, exception: {ex.Message}");
                 }
             }
         }

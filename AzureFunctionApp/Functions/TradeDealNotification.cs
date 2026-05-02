@@ -22,7 +22,7 @@ public class TradeDealNotification
         public async Task Run(
             [QueueTrigger("trade-deals", Connection = "AzureWebJobsStorage")] EquipmentResponseModel equipmentDetails)
         {
-            _logger.LogInformation($"C# Queue trigger function processed: {equipmentDetails.ItemCode}");
+            _logger.LogDebug($"C# Queue trigger function processed: {equipmentDetails.ItemCode}");
             await _discordIntegrationService.PostMessageInDedicatedChannelAsync(equipmentDetails);
         }
     }
