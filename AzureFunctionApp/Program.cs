@@ -59,6 +59,7 @@ var host = new HostBuilder()
                      .AddUserSecrets<Program>(optional: true)
                      .AddEnvironmentVariables();
     })
+    .ConfigureLogging(logger => logger.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning))
     .Build();
 
 using (var scope = host.Services.CreateScope())
