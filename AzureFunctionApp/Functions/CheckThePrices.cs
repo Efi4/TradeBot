@@ -17,7 +17,7 @@ namespace AzureFunctionApp.Functions
             _priceService = avpriceService;
         }
 
-        [Function("CheckTheAvPrices")]
+        [Function(nameof(CheckThePrices))]
         public async Task Run(
             [TimerTrigger("0 */5 * * * *")] TimerInfo myTimer)
         {
@@ -30,17 +30,17 @@ namespace AzureFunctionApp.Functions
             try
             {
                  var result = await _priceService.CheckPricesAsync();
-                _logger.LogInformation($"Items checked: {result.ItemsChecked}, Deals found: {result.DealsFound}");
-                _logger.LogInformation($"Price check result: {string.Join(", ", result.Messages)}");
+                _logger.LogInformation($"{nameof(CheckThePrices)}: Items checked: {result.ItemsChecked}, Deals found: {result.DealsFound}");
+                _logger.LogInformation($"{nameof(CheckThePrices)}: Price check result: {string.Join(", ", result.Messages)}");
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error in {nameof(CheckThePrices)}: {ex.Message}");
+                _logger.LogError($"{nameof(CheckThePrices)}: Error {ex.Message}");
             }
 
             if (myTimer.ScheduleStatus is not null)
             {
-                _logger.LogDebug($"Next timer schedule: {myTimer.ScheduleStatus.Next}");
+                _logger.LogDebug($"{nameof(CheckThePrices)}: Next timer schedule: {myTimer.ScheduleStatus.Next}");
             }
         }
     }
