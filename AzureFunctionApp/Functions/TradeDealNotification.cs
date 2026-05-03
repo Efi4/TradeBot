@@ -18,5 +18,6 @@ public class TradeDealNotification(ILogger<TradeDealNotification> logger, IDisco
     {
         _logger.LogDebug($"C# Queue trigger function processed: {equipmentDetails.Item.ItemCode}");
         await _discordIntegrationService.PostMessageInDedicatedChannelAsync(equipmentDetails);
+        await Task.Delay(1000); // to prevent throttling
     }
 }
