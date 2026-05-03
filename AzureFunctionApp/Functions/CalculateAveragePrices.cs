@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using TradeBot.Core.Interfaces;
 using System.Threading.Tasks;
 using System;
+using TradeBot.Data.Models;
 
 namespace AzureFunctionApp.Functions
 {
@@ -25,11 +26,23 @@ namespace AzureFunctionApp.Functions
             
             try
             {
-                bool isWeaponPartSuccess = await _priceService.CalculateAverageWeaponPricesAsync();
-                bool isArmorPartSuccess = await _priceService.CalculateAverageArmorPricesAsync();
-                if(isArmorPartSuccess && isWeaponPartSuccess)
+                var weaponPricesList = await _priceService.CalculateAverageWeaponPricesAsync();
+                var armorPricesList = await _priceService.CalculateAverageArmorPricesAsync();
+                if(weaponPricesList.Count>0 && armorPricesList.Count>0)
                 {
                     _logger.LogDebug($"Average price calculation succeeded.");
+                    
+                    _logger.LogInformation($"New batch of weapon prices ({weaponPricesList.Count} items):");
+                    foreach (var weapon in weaponPricesList)
+                    {
+                        _logger.LogInformation($" {weapon.Type}({weapon.Crit}-{weapon.Attack}) costs {weapon.Price} in reasonable average.");
+                    }
+                    
+                    _logger.LogInformation($"New batch of armor items prices ({armorPricesList.Count} items):");
+                    foreach (var armor in armorPricesList)
+                    {
+                        _logger.LogInformation($" {armor.Type}({armor.Stat}) costs {armor.Price} in reasonable average.");
+                    }
                 }
             }
             catch (Exception ex)

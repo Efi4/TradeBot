@@ -28,19 +28,20 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
         _statRangeOptions = statRangeOptions;
     }
 
-    public async Task<bool> CalculateAverageWeaponPricesAsync()
+    public async Task<List<WeaponPrice>> CalculateAverageWeaponPricesAsync()
     {
         _logger.LogDebug($"{nameof(CalculateAveragePriceService)}: Starting to calculate average weapon prices...");
+        var averagePriceList = new List<WeaponPrice>();
         var weaponCount = await _dbContext.Weapons.CountAsync();
         if(weaponCount == 0)
         {
             _logger.LogError($"{nameof(CalculateAveragePriceService)}: No weapon items were found in the database. Calculating average price is not possible.");
-            return false;
+            return averagePriceList;
         }
         try
         {
             var weaponList = await _dbContext.Weapons.ToListAsync();
-            var averagePriceList = new List<WeaponPrice>();
+            
             for(int crit = Constants.RareItemsBrowseLimits.MinWeaponCrit; crit <= Constants.WeaponStatRanges.MaxJetCrit; crit++)
             {
                 var attackRange = GetAttackRangeForCrit(crit);
@@ -78,23 +79,23 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
         catch (Exception ex)
         {
             _logger.LogError(ex, $"{nameof(CalculateAveragePriceService)}: an error occurred while calculating average price for weapons.");
-            return false;
+            return averagePriceList;
         }
-        return true;
+        return averagePriceList;
     }
 
-    public async Task<bool> CalculateAverageArmorPricesAsync()
+    public async Task<List<ArmorPrice>> CalculateAverageArmorPricesAsync()
     {
+        var averagePriceList = new List<ArmorPrice>();  
         var armorCount = await _dbContext.Armors.CountAsync();
         if(armorCount == 0)
         {
             _logger.LogError($"{nameof(CalculateAveragePriceService)}: No armor items were found in the database. Calculating average price is not possible.");
-            return false;
+            return averagePriceList;
         }
         _logger.LogDebug($"{nameof(CalculateAveragePriceService)}: Starting to calculate average armor prices...");
         try
         {
-            var averagePriceList = new List<ArmorPrice>();   
             foreach(var armorType in Enum.GetValues<ArmorType>())
             {                
                 var armorStatRange = _statRangeOptions.Value.ArmorStatRanges.Find(ar => ar.Name == armorType);
@@ -116,7 +117,7 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
                     if( armorItemsPerTypePerStat == null || armorItemsPerTypePerStat.Count == 0)
                     {
                         _logger.LogDebug($"{nameof(CalculateAveragePriceService)}: No items of type '{armorType}' was not found for stat '{i}'. Average price calculation for this position will be skipped.");
-                         continue;
+                        continue;
                     }
                     var sortedArmorPrices = armorItemsPerTypePerStat.OrderBy(w => w.Price).ToList();
                     var reasonableCount = (int)Math.Ceiling(sortedArmorPrices.Count * 0.3);
@@ -136,9 +137,9 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
         catch (Exception ex)
         {
             _logger.LogError(ex, $"{nameof(CalculateAveragePriceService)}: An error occurred while calculating average price of armor items.");
-            return false;
+            return averagePriceList;
         }
-        return true;
+        return averagePriceList;
     }
 
     private (int, int)? GetAttackRangeForCrit(int crit) => crit switch
