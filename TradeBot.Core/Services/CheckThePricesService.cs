@@ -131,13 +131,17 @@ public class CheckThePricesService : ICheckThePricesService
             FillWeaponCollection(initialData.ItemsModel);
             var nextCursor = initialData.NextCursor;
 
-            while(nextCursor != null)
+            while(nextCursor != null) 
             {
+                if (decimal.Parse(nextCursor.Split("|")[0]).CompareTo(296.999m)>0 && 
+                    decimal.Parse(nextCursor.Split("|")[0]).CompareTo(297.001m)<0)
+                {
+                    break; //Adding this weird limitation cause one request is breaking application.
+                }
                 var batchWeaponRequest = PrepareBatchRequest(itemCode, nextCursor);
                 _logger.LogDebug($"{nameof(CheckThePricesService)}: Making {Constants.EquipmentLookup.NameMapping[itemCode]} weapon batch fetch POST request with cursor: {nextCursor}");
                 
                 var nextBatchResponse = await _httpClient.SendAsync(batchWeaponRequest);
-                
                 var batchData = await ParseResponseContent(nextBatchResponse.Content);
                 await ProcessPossibleWeaponTradeDealsAsync(initialData.ItemsModel);
 
