@@ -40,8 +40,8 @@ public class DiscordIntegrationService : IDiscordIntegrationService
         var discordChannelPostRequest = new HttpRequestMessage(HttpMethod.Post, _discordIntegrationOptions.Value.WebHookUrl)
         {
             Content = new StringContent("{\"content\": \"Trade deal is available: " +
-            $"{Constants.EquipmentLookup.NameMapping[equipmentData.Item.ItemCode]}, {equipmentData.Price} gold, "+
-            $"{string.Join("-",equipmentData.Item.Skills.Values)},"+
+            $"{Constants.EquipmentLookup.NameMapping[equipmentData.Item.ItemCode]}"+
+            $"({string.Join("-",equipmentData.Item.Skills.Values)}),{equipmentData.Price} gold, "+
             $"<t:{new DateTimeOffset(equipmentData.CreatedAt).ToUnixTimeSeconds()}:R>,"+
             $"possible margin {equipmentData.Margin}"+
             "\"}",
