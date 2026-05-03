@@ -59,13 +59,15 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
                         _logger.LogDebug($"{nameof(CalculateAveragePriceService)}: No weapons with stats{attack}-{crit} were found.");
                         continue;
                     }
-                    var averageWeaponPrice = weaponPositions.Sum(w => w.Price) / weaponPositions.Count;
+                    var sortedPrices = weaponPositions.OrderBy(w => w.Price).ToList();
+                    var reasonableCount = (int)Math.Ceiling(sortedPrices.Count * 0.3);
+                    var averageReasonableWeaponPrice = sortedPrices.Take(reasonableCount).Average(w => (decimal)w.Price);
                     averagePriceList.Add(new WeaponPrice
                     {
                         Type = weaponPositions.First().Type,
                         Attack = attack,
                         Crit = crit,
-                        Price = averageWeaponPrice         
+                        Price = averageReasonableWeaponPrice         
                     });
                 }
             }
@@ -116,12 +118,14 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
                         _logger.LogDebug($"{nameof(CalculateAveragePriceService)}: No items of type '{armorType}' was not found for stat '{i}'. Average price calculation for this position will be skipped.");
                          continue;
                     }
-                    var averageArmorPrice = armorItemsPerTypePerStat.Sum(w => w.Price) / armorItemsPerTypePerStat.Count;
+                    var sortedArmorPrices = armorItemsPerTypePerStat.OrderBy(w => w.Price).ToList();
+                    var reasonableCount = (int)Math.Ceiling(sortedArmorPrices.Count * 0.3);
+                    var averageReasonableArmorPrice = sortedArmorPrices.Take(reasonableCount).Average(w => (decimal)w.Price);
                     averagePriceList.Add(new ArmorPrice
                     {
                         Type = armorType,
                         Stat = i,
-                        Price = averageArmorPrice         
+                        Price = averageReasonableArmorPrice         
                     });
                 }
             }
