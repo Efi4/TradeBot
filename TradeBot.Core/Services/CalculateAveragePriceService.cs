@@ -35,7 +35,7 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
         var weaponCount = await _dbContext.Weapons.CountAsync();
         if(weaponCount == 0)
         {
-            _logger.LogError($"{nameof(CalculateAveragePriceService)}: No weapon items were found in the database. Calculating average price is not possible.");
+            _logger.LogWarning($"{nameof(CalculateAveragePriceService)}: No weapon items were found in the database. Calculating average price is not possible.");
             return averagePriceList;
         }
         try
@@ -90,7 +90,7 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
         var armorCount = await _dbContext.Armors.CountAsync();
         if(armorCount == 0)
         {
-            _logger.LogError($"{nameof(CalculateAveragePriceService)}: No armor items were found in the database. Calculating average price is not possible.");
+            _logger.LogWarning($"{nameof(CalculateAveragePriceService)}: No armor items were found in the database. Calculating average price is not possible.");
             return averagePriceList;
         }
         _logger.LogDebug($"{nameof(CalculateAveragePriceService)}: Starting to calculate average armor prices...");
