@@ -68,7 +68,7 @@ public class CheckThePricesService : ICheckThePricesService
 
             foreach(var weaponType in Enum.GetValues<WeaponType>())
             {
-                if (weaponType is not WeaponType.Tank) {continue;} //Add for testing purposes ///TODO: REMOVE
+                if (weaponType is not WeaponType.Tank && weaponType is not WeaponType.Sniper) {continue;} //Add for testing purposes ///TODO: REMOVE
                 var isSuccessful = await FetchAndStoreWeaponsAsync(weaponType);
                 if(isSuccessful) 
                 {
