@@ -55,10 +55,10 @@ public class CheckThePricesService : ICheckThePricesService
         _logger.LogDebug($"{nameof(CheckThePricesService)}: Clearing equipment tables.");
         await ClearEquipmentTables();
 
-        PrepareQuerryStringParameters();
-
         _logger.LogDebug($"{nameof(CheckThePricesService)}: Starting to check prices...");
         var result = new CheckPricesResult();
+
+        PrepareQuerryStringParameters();
         try
         {
             var armorPricesCount = await _dbContext.ArmorPrices.CountAsync();
@@ -412,7 +412,7 @@ public class CheckThePricesService : ICheckThePricesService
                 w=> w.Type == armorType &&
                 w.Stat == position.Item.Skills.First().Value)?.Price;
             
-            if(averagePrice is not null && position.Price < averagePrice*0.9m)
+            if(averagePrice is not null && position.Price < averagePrice*0.9m && position.CreatedAt > DateTime.Now.AddHours(-2))
             {
                 try
                 {
@@ -439,12 +439,12 @@ public class CheckThePricesService : ICheckThePricesService
             var weaponType = Enum.Parse<WeaponType>(position.Item.ItemCode, ignoreCase: true);
             var attack = position.Item.Skills[Constants.EquipmentLookup.AttackStatName];
             var crit = position.Item.Skills[Constants.EquipmentLookup.CritStatName];
-            var averagePrice = _dbContext.WeaponPrices.SingleOrDefault(
-                w=> w.Type == weaponType &&
+            var averagePrice = _dbContext.WeaponPrices.SingleOrDefault(w=>
+                w.Type == weaponType &&
                 w.Attack == attack &&
                 w.Crit == crit)?.Price;
             
-            if (averagePrice is not null && position.Price < averagePrice*0.9m)
+            if (averagePrice is not null && position.Price < averagePrice*0.9m && position.CreatedAt > DateTime.Now.AddHours(-2))
             {
                 try
                 {

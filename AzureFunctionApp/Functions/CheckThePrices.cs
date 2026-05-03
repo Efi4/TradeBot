@@ -30,8 +30,8 @@ namespace AzureFunctionApp.Functions
             try
             {
                  var result = await _priceService.CheckPricesAsync();
-                _logger.LogDebug($"Items checked: {result.ItemsChecked}, Deals found: {result.DealsFound}");
-                _logger.LogDebug($"Price check result: {string.Join(", ", result.Messages)}");
+                _logger.LogInformation($"Items checked: {result.ItemsChecked}, Deals found: {result.DealsFound}");
+                _logger.LogInformation($"Price check result: {string.Join(", ", result.Messages)}");
             }
             catch (Exception ex)
             {
