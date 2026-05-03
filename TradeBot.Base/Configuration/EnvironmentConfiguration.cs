@@ -45,4 +45,13 @@ public static class EnvironmentConfiguration
         return Environment.GetEnvironmentVariable(Constants.EnvironmentVariables.AzureStorageConnectionStringEnvironmentVariableName)
             ??  throw new ArgumentNullException("Trading storage account connection string environment variable is not set.");
     }
+
+    /// <summary>
+    /// Gets the cookie header from environment variables
+    /// </summary>
+    public static string GetCookieHeader()
+    {
+        return Environment.GetEnvironmentVariable(Constants.EnvironmentVariables.CookieHeaderEnvironmentVariableName)
+            ??  throw new ArgumentNullException("Cookie header environment variable is not set.");
+    }
 }

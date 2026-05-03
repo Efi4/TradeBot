@@ -16,6 +16,7 @@ using TradeBot.Core.Interfaces;
 using TradeBot.Base;
 using TradeBot.Base.Objects;
 using TradeBot.Base.Models;
+using TradeBot.Base.Configuration;
 
 
 namespace TradeBot.Core.Services;
@@ -52,7 +53,7 @@ public class CheckThePricesService : ICheckThePricesService
     public async Task<CheckPricesResult> CheckPricesAsync()
     {
         _logger.LogDebug($"{nameof(CheckThePricesService)}: Clearing equipment tables.");
-        // await ClearEquipmentTables();
+        await ClearEquipmentTables();
 
         PrepareQuerryStringParameters();
 
@@ -202,12 +203,20 @@ public class CheckThePricesService : ICheckThePricesService
         {
             if(!String.IsNullOrEmpty(header.Value))  equipmentListRequest.Headers.Add(header.Key, header.Value);
         }
-        _headers.TryGetValue("Cookie", out var cookieHeader);
+        string? cookieHeader;
+        if(!_headers.TryGetValue("Cookie", out cookieHeader))
+        {
+            cookieHeader = EnvironmentConfiguration.GetCookieHeader();
+        }
         if (!string.IsNullOrEmpty(cookieHeader))
         {
-            _logger.LogDebug($"{nameof(CheckThePricesService)}: Found cookie in secrets, starts with: {cookieHeader.Substring(0, 10)}...");
+            _logger.LogDebug($"{nameof(CheckThePricesService)}: Found cookie, starts with: {cookieHeader.Substring(0, 10)}...");
         }
-        else _logger.LogWarning($"{nameof(CheckThePricesService)}: No cookie found in secrets!");
+        else 
+        {
+            _logger.LogError($"{nameof(CheckThePricesService)}: No cookie found in secrets!");
+            throw new MissingMemberException(nameof(cookieHeader));
+        }
         
         _logger.LogDebug($"{nameof(CheckThePricesService)}: Initial request prepared.");
         return equipmentListRequest;
