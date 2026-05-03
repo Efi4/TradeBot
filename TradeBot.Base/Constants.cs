@@ -23,6 +23,7 @@ public static class Constants
     public static class AzureStorageConfiguration
     {
         public const string TradeDealsQueueName = "trade-deals";
+        public const string NotificationsQueueName = "notifications";
         public const string BlobContainerName = "deals";
     }
     public static class WeaponStatRanges

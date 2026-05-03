@@ -99,6 +99,8 @@ public class CheckThePricesService : ICheckThePricesService
 
             result.Success = true;
             _logger.LogDebug($"{nameof(CheckThePricesService)}: Price check completed");
+            await _azureStorageHelper.PushToNotificationsQueueEncodedAsync($"Price check was completed. {result.ItemsChecked} items checked, {result.DealsFound} deals found.");
+
             return result;
         }
         catch (Exception ex)
@@ -122,6 +124,7 @@ public class CheckThePricesService : ICheckThePricesService
             if (!initialResponse.IsSuccessStatusCode)
             {
                 _logger.LogWarning($"{nameof(CheckThePricesService)}: Initial {Constants.EquipmentLookup.NameMapping[itemCode]} weapon fetch request failed with status code: {initialResponse.StatusCode} and reason: {initialResponse.ReasonPhrase}");
+                await _azureStorageHelper.PushToNotificationsQueueEncodedAsync($"Application encountered {initialResponse.StatusCode}-{initialResponse.ReasonPhrase} response.");
                 return false;
             }
 
@@ -169,6 +172,7 @@ public class CheckThePricesService : ICheckThePricesService
             if (!initialResponse.IsSuccessStatusCode)
             {
                 _logger.LogWarning($"{nameof(CheckThePricesService)}: Initial {Constants.EquipmentLookup.NameMapping[itemCode]} armor fetch request failed with status code: {initialResponse.StatusCode} and reason: {initialResponse.ReasonPhrase}");
+                await _azureStorageHelper.PushToNotificationsQueueEncodedAsync($"Application encountered {initialResponse.StatusCode}-{initialResponse.ReasonPhrase} response.");
                 return false;
             }
 
@@ -420,7 +424,7 @@ public class CheckThePricesService : ICheckThePricesService
             {
                 try
                 {
-                    await _azureStorageHelper.PushToQueueEncodedAsync(new EquipmentQueueMessageModel()
+                    await _azureStorageHelper.PushToTradeDealsQueueEncodedAsync(new EquipmentQueueMessageModel()
                     {
                         Item = position.Item,
                         Price = position.Price,
@@ -452,7 +456,7 @@ public class CheckThePricesService : ICheckThePricesService
             {
                 try
                 {
-                    await _azureStorageHelper.PushToQueueEncodedAsync(new EquipmentQueueMessageModel()
+                    await _azureStorageHelper.PushToTradeDealsQueueEncodedAsync(new EquipmentQueueMessageModel()
                     {
                         Item = position.Item,
                         Price = position.Price,

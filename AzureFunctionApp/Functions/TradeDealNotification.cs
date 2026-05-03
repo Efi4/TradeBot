@@ -7,22 +7,16 @@ using TradeBot.Core.Interfaces;
 
 namespace AzureFunctionApp.Functions;
 
-public class TradeDealNotification
+public class TradeDealNotification(ILogger<TradeDealNotification> logger, IDiscordIntegrationService discordIntegrationService)
+{
+    private readonly ILogger<TradeDealNotification> _logger = logger;
+    private readonly IDiscordIntegrationService _discordIntegrationService = discordIntegrationService;
+
+    [Function(nameof(TradeDealNotification))]
+    public async Task Run(
+        [QueueTrigger("trade-deals", Connection = "AzureWebJobsStorage")] EquipmentQueueMessageModel equipmentDetails)
     {
-        private readonly ILogger<TradeDealNotification> _logger;
-        private readonly IDiscordIntegrationService _discordIntegrationService;
-
-        public TradeDealNotification(ILogger<TradeDealNotification> logger, IDiscordIntegrationService discordIntegrationService)
-        {
-            _logger = logger;
-            _discordIntegrationService = discordIntegrationService;
-        }
-
-        [Function(nameof(TradeDealNotification))]
-        public async Task Run(
-            [QueueTrigger("trade-deals", Connection = "AzureWebJobsStorage")] EquipmentQueueMessageModel equipmentDetails)
-        {
-            _logger.LogDebug($"C# Queue trigger function processed: {equipmentDetails.Item.ItemCode}");
-            await _discordIntegrationService.PostMessageInDedicatedChannelAsync(equipmentDetails);
-        }
+        _logger.LogDebug($"C# Queue trigger function processed: {equipmentDetails.Item.ItemCode}");
+        await _discordIntegrationService.PostMessageInDedicatedChannelAsync(equipmentDetails);
     }
+}

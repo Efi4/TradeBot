@@ -21,7 +21,8 @@ namespace TradeBot.Data.Helpers;
 public class AzureStorageHelper : IAzureStorageHelper
 {
     private readonly BlobContainerClient _containerClient;
-    private readonly QueueClient _queueClient;
+    private readonly QueueClient _tradeDealsQueueClient;
+    private readonly QueueClient _notificationQueueClient;
 
     public AzureStorageHelper()
     {
@@ -30,7 +31,8 @@ public class AzureStorageHelper : IAzureStorageHelper
         _containerClient = blobServiceClient.GetBlobContainerClient(Constants.AzureStorageConfiguration.BlobContainerName);
         
         var queueServiceClient = new QueueServiceClient(azureConnectionString);
-        _queueClient = queueServiceClient.GetQueueClient(Constants.AzureStorageConfiguration.TradeDealsQueueName);
+        _tradeDealsQueueClient = queueServiceClient.GetQueueClient(Constants.AzureStorageConfiguration.TradeDealsQueueName);
+        _notificationQueueClient = queueServiceClient.GetQueueClient(Constants.AzureStorageConfiguration.NotificationsQueueName);
     }
 
     /// <summary>
@@ -106,41 +108,41 @@ public class AzureStorageHelper : IAzureStorageHelper
     /// <summary>
     /// Pushes an encoded message to the queue
     /// </summary>
-    public async Task PushToQueueEncodedAsync(EquipmentQueueMessageModel equipmentMessage)
+    public async Task PushToTradeDealsQueueEncodedAsync(EquipmentQueueMessageModel equipmentMessage)
     {
         try
         {
-            if (_queueClient == null)
+            if (_tradeDealsQueueClient == null)
             {
                 throw new InvalidOperationException("Queue client not initialized. Initialize with queue name in constructor.");
             }
             string jsonMessage = JsonSerializer.Serialize(equipmentMessage);
             string base64Encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(jsonMessage));
-            await _queueClient.SendMessageAsync(base64Encoded);
+            await _tradeDealsQueueClient.SendMessageAsync(base64Encoded);
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException("Failed to push a message in the queue", ex);   
+            throw new InvalidOperationException("Failed to push a message in the trade-deals queue", ex);   
         }
     }
 
     /// <summary>
     /// Pushes a message to the queue
     /// </summary>
-    public async Task PushToQueueAsync(EquipmentResponseModel equipment)
+    public async Task PushToNotificationsQueueEncodedAsync(string message)
     {
         try
         {
-            if (_queueClient == null)
+            if (_notificationQueueClient == null)
             {
-                throw new InvalidOperationException("Queue client not initialized. Initialize with queue name in constructor.");
+                throw new InvalidOperationException($"{nameof(_notificationQueueClient)} Queue client not initialized. Initialize with queue name in constructor.");
             }
-            string jsonMessage = JsonSerializer.Serialize(equipment);
-            await _queueClient.SendMessageAsync(jsonMessage);
+            string base64Encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(message));
+            await _notificationQueueClient.SendMessageAsync(base64Encoded);
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException("Failed to push a message in the queue", ex);   
+            throw new InvalidOperationException("Failed to push a message in the notifications queue", ex);   
         }
     }
 
@@ -151,11 +153,11 @@ public class AzureStorageHelper : IAzureStorageHelper
     {
         try
         {
-            if (_queueClient == null)
+            if (_tradeDealsQueueClient == null)
             {
                 throw new InvalidOperationException("Queue client not initialized. Initialize with queue name in constructor.");
             }
-            var message = await _queueClient.ReceiveMessageAsync();
+            var message = await _tradeDealsQueueClient.ReceiveMessageAsync();
             if(message == null || message.Value == null)
             {
                 throw new InvalidOperationException("No messages available in the queue");
@@ -176,11 +178,11 @@ public class AzureStorageHelper : IAzureStorageHelper
     {
         try
         {
-            if (_queueClient == null)
+            if (_tradeDealsQueueClient == null)
             {
                 throw new InvalidOperationException("Queue client not initialized. Initialize with queue name in constructor.");
             }
-            var messages = await _queueClient.ReceiveMessagesAsync(maxMessages);
+            var messages = await _tradeDealsQueueClient.ReceiveMessagesAsync(maxMessages);
             if(messages == null || messages.Value == null)
             {
                 throw new InvalidOperationException("No messages available in the queue");
@@ -200,11 +202,11 @@ public class AzureStorageHelper : IAzureStorageHelper
     {
         try
         {
-            if (_queueClient == null)
+            if (_tradeDealsQueueClient == null)
             {
                 throw new InvalidOperationException("Queue client not initialized. Initialize with queue name in constructor.");
             }
-            await _queueClient.DeleteMessageAsync(messageId, popReceipt);
+            await _tradeDealsQueueClient.DeleteMessageAsync(messageId, popReceipt);
         }
         catch (Exception ex)
         {

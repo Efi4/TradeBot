@@ -6,5 +6,6 @@ namespace TradeBot.Core.Interfaces
     public interface IDiscordIntegrationService
     {
         Task PostMessageInDedicatedChannelAsync(EquipmentQueueMessageModel equipmentData);
+        Task PostNotificationMessageInDedicatedChannelAsync(string message);
     }
 }

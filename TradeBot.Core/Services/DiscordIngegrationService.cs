@@ -35,6 +35,17 @@ public class DiscordIntegrationService : IDiscordIntegrationService
         _logger.LogDebug($"{nameof(DiscordIntegrationService)}: Message was succesfully sent in dedicated discord channel.");
     }
 
+    public async Task PostNotificationMessageInDedicatedChannelAsync(string message)
+    {
+        var discordChannelPostRequest = PrepareNotificationRequest(message);
+        var result = await _httpClient.SendAsync(discordChannelPostRequest);
+        if(!result.IsSuccessStatusCode)
+        {
+            _logger.LogWarning($"{nameof(DiscordIntegrationService)}: Unable to send a message. Reason:{result.ReasonPhrase}");
+        }
+        _logger.LogDebug($"{nameof(DiscordIntegrationService)}: Message was succesfully sent in dedicated discord channel.");
+    }
+
     private HttpRequestMessage PrepareRequest(EquipmentQueueMessageModel equipmentData)
     {
         var discordChannelPostRequest = new HttpRequestMessage(HttpMethod.Post, _discordIntegrationOptions.Value.WebHookUrl)
@@ -44,6 +55,19 @@ public class DiscordIntegrationService : IDiscordIntegrationService
             $"({string.Join("-",equipmentData.Item.Skills.Values)}),{equipmentData.Price} gold, "+
             $"<t:{new DateTimeOffset(equipmentData.CreatedAt).ToUnixTimeSeconds()}:R>,"+
             $"possible margin {equipmentData.Margin}"+
+            "\"}",
+            System.Text.Encoding.UTF8, "application/json")
+        };
+        _logger.LogDebug($"{nameof(DiscordIntegrationService)}: Request has been prepared.");
+
+        return discordChannelPostRequest;
+    }
+    private HttpRequestMessage PrepareNotificationRequest(string message)
+    {
+        var discordChannelPostRequest = new HttpRequestMessage(HttpMethod.Post, _discordIntegrationOptions.Value.WebHookUrl)
+        {
+            Content = new StringContent("{\"content\": \""+
+            $"{message}"+
             "\"}",
             System.Text.Encoding.UTF8, "application/json")
         };
