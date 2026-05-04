@@ -90,6 +90,7 @@ public class CheckThePricesService : ICheckThePricesService
                 if (armorType is not ArmorType.Helmet4 && 
                     armorType is not ArmorType.Boots4 && 
                     armorType is not ArmorType.Gloves4 &&
+                    armorType is not ArmorType.Gloves5 &&
                     armorType is not ArmorType.Boots5) 
                     {continue;} //Add for testing purposes ///TODO: REMOVE
                 var isSuccessful = await FetchAndStoreArmorsAsync(armorType);
@@ -447,7 +448,7 @@ public class CheckThePricesService : ICheckThePricesService
                 w=> w.Type == armorType &&
                 w.Stat == position.Item.Skills.First().Value)?.Price;
             
-            if(averagePrice is not null && position.Price < averagePrice*0.9m && position.CreatedAt > DateTime.UtcNow.AddHours(-2))
+            if(averagePrice is not null && position.Price < averagePrice*0.85m && position.CreatedAt > DateTime.UtcNow.AddHours(-2))
             {
                 try
                 {
@@ -479,7 +480,7 @@ public class CheckThePricesService : ICheckThePricesService
                 w.Attack == attack &&
                 w.Crit == crit)?.Price;
             
-            if (averagePrice is not null && position.Price < averagePrice*0.9m && position.CreatedAt > DateTime.UtcNow.AddHours(-2))
+            if (averagePrice is not null && position.Price < averagePrice*0.85m && position.CreatedAt > DateTime.UtcNow.AddHours(-2))
             {
                 try
                 {
