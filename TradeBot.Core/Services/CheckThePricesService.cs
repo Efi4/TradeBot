@@ -87,7 +87,11 @@ public class CheckThePricesService : ICheckThePricesService
 
             foreach(var armorType in Enum.GetValues<ArmorType>())
             {
-                if (armorType is not ArmorType.Helmet4 && armorType is not ArmorType.Boots4 && armorType is not ArmorType.Gloves4) {continue;} //Add for testing purposes ///TODO: REMOVE
+                if (armorType is not ArmorType.Helmet4 && 
+                    armorType is not ArmorType.Boots4 && 
+                    armorType is not ArmorType.Gloves4 &&
+                    armorType is not ArmorType.Boots5) 
+                    {continue;} //Add for testing purposes ///TODO: REMOVE
                 var isSuccessful = await FetchAndStoreArmorsAsync(armorType);
                 if(isSuccessful) 
                 {
