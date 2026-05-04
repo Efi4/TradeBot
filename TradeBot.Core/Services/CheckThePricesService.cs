@@ -72,18 +72,18 @@ public class CheckThePricesService : ICheckThePricesService
             var weaponPricesCount = await _dbContext.WeaponPrices.CountAsync();  
             _logger.LogDebug($"{nameof(CheckThePricesService)}: Found {weaponPricesCount} prices of weapon items.");
 
-            // foreach(var weaponType in Enum.GetValues<WeaponType>())
-            // {
-            //     if (weaponType is not WeaponType.Tank && weaponType is not WeaponType.Sniper) {continue;} //Add for testing purposes ///TODO: REMOVE
-            //     var isSuccessful = await FetchAndStoreWeaponsAsync(weaponType);
-            //     if(isSuccessful) 
-            //     {
-            //         result.Messages.Add($"{weaponType} weapons were checked.");
-            //     }
-            // }
-            // // Insert weapons found into database
-            // await InsertWeaponsAsync(_weapons);
-            // result.Messages.Add($"{_weapons.Count} weapons were added in database.");
+            foreach(var weaponType in Enum.GetValues<WeaponType>())
+            {
+                if (weaponType is not WeaponType.Tank && weaponType is not WeaponType.Sniper) {continue;} //Add for testing purposes ///TODO: REMOVE
+                var isSuccessful = await FetchAndStoreWeaponsAsync(weaponType);
+                if(isSuccessful) 
+                {
+                    result.Messages.Add($"{weaponType} weapons were checked.");
+                }
+            }
+            // Insert weapons found into database
+            await InsertWeaponsAsync(_weapons);
+            result.Messages.Add($"{_weapons.Count} weapons were added in database.");
 
             foreach(var armorType in Enum.GetValues<ArmorType>())
             {
@@ -147,7 +147,7 @@ public class CheckThePricesService : ICheckThePricesService
                 
                 var nextBatchResponse = await _httpClient.SendAsync(batchWeaponRequest);
                 var batchData = await ParseResponseContent(nextBatchResponse.Content);
-                await ProcessPossibleWeaponTradeDealsAsync(initialData.ItemsModel);
+                await ProcessPossibleWeaponTradeDealsAsync(batchData.ItemsModel);
 
                 FillWeaponCollection(batchData.ItemsModel);
                 nextCursor = batchData.NextCursor;
