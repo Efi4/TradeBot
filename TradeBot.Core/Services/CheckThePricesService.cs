@@ -144,13 +144,23 @@ public class CheckThePricesService : ICheckThePricesService
             {
                 var batchWeaponRequest = PrepareBatchRequest(itemCode, nextCursor);
                 _logger.LogDebug($"{nameof(CheckThePricesService)}: Making {Constants.EquipmentLookup.NameMapping[itemCode]} weapon batch fetch POST request with cursor: {nextCursor}");
-                
-                var nextBatchResponse = await _httpClient.SendAsync(batchWeaponRequest);
-                var batchData = await ParseResponseContent(nextBatchResponse.Content);
-                await ProcessPossibleWeaponTradeDealsAsync(batchData.ItemsModel);
+                try
+                {
+                    var nextBatchResponse = await _httpClient.SendAsync(batchWeaponRequest);
+                    var batchData = await ParseResponseContent(nextBatchResponse.Content);
+                    await ProcessPossibleWeaponTradeDealsAsync(batchData.ItemsModel);
 
-                FillWeaponCollection(batchData.ItemsModel);
-                nextCursor = batchData.NextCursor;
+                    FillWeaponCollection(batchData.ItemsModel);
+                    nextCursor = batchData.NextCursor;
+                }
+                catch(Exception ex)
+                {
+                    if(ex.Message.Equals("'(' is an invalid start of a value. Path: $ | LineNumber: 0 | BytePositionInLine: 0."))  
+                    {
+                        _logger.LogInformation($"{nameof(CheckThePricesService)}: Decompression related error. AGAIN.");
+                    }
+                    break;
+                }
             }
         }
         catch (Exception ex)
@@ -187,12 +197,22 @@ public class CheckThePricesService : ICheckThePricesService
             {
                 var batchArmorRequest = PrepareBatchRequest(itemCode, nextCursor);
                 _logger.LogDebug($"{nameof(CheckThePricesService)}: Making armor batch fetch POST request to get {Constants.EquipmentLookup.NameMapping[itemCode]} with cursor: {nextCursor}");
-
-                var nextBatchResponse = await _httpClient.SendAsync(batchArmorRequest);
-                var batchData = await ParseResponseContent(nextBatchResponse.Content);
-                await ProcessPossibleArmorTradeDealsAsync(batchData.ItemsModel);
-                FillArmorCollection(batchData.ItemsModel);
-                nextCursor = batchData.NextCursor;
+                try
+                {
+                    var nextBatchResponse = await _httpClient.SendAsync(batchArmorRequest);
+                    var batchData = await ParseResponseContent(nextBatchResponse.Content);
+                    await ProcessPossibleArmorTradeDealsAsync(batchData.ItemsModel);
+                    FillArmorCollection(batchData.ItemsModel);
+                    nextCursor = batchData.NextCursor;
+                }
+                catch(Exception ex)
+                {
+                    if(ex.Message.Equals("'(' is an invalid start of a value. Path: $ | LineNumber: 0 | BytePositionInLine: 0."))  
+                    {
+                        _logger.LogInformation($"{nameof(CheckThePricesService)}: Decompression related error. AGAIN.");
+                    }
+                    break;
+                }
             }
         }
         catch (Exception ex)
@@ -351,21 +371,24 @@ public class CheckThePricesService : ICheckThePricesService
 
     private void FillArmorCollection(List<EquipmentResponseModel> armorList)    
     {
-        armorList.ForEach(item => _armors.Add(new Armor
+        foreach(var item in armorList)
         {
-            Type = Enum.Parse<ArmorType>(item.ItemCode, ignoreCase: true),
-            Price = item.Price,
-            Stat = item.Item.Skills.First().Value          
-        }));
+            if (item.Price > 2000m) 
+            {
+                continue;
+            }
+            _armors.Add(new Armor
+            {
+                Type = Enum.Parse<ArmorType>(item.ItemCode, ignoreCase: true),
+                Price = item.Price,
+                Stat = item.Item.Skills.First().Value    
+            });
+        }
     }
 
     private async Task<ItemMarketDataContainerModel> ParseResponseContent(HttpContent content)
     {
-        var parsedContent = await content.ReadFromJsonAsync<List<ItemMarketResponseModel>>();
-        if(parsedContent == null)
-        {
-            throw new Exception($"{nameof(CheckThePricesService)}: Failed to deserialize response content");
-        }
+        var parsedContent = await content.ReadFromJsonAsync<List<ItemMarketResponseModel>>() ?? throw new Exception($"{nameof(CheckThePricesService)}: Failed to deserialize response content");
         _logger.LogDebug($"{nameof(CheckThePricesService)}: Equipment response deserialized successfully.");
         return parsedContent[0].Result.Data;
     }
