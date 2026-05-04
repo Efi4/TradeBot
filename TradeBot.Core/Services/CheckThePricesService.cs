@@ -89,8 +89,11 @@ public class CheckThePricesService : ICheckThePricesService
             {
                 if (armorType is not ArmorType.Helmet4 && 
                     armorType is not ArmorType.Boots4 && 
+                    armorType is not ArmorType.Pants4 && 
+                    armorType is not ArmorType.Chest4 && 
                     armorType is not ArmorType.Gloves4 &&
                     armorType is not ArmorType.Gloves5 &&
+                    armorType is not ArmorType.Helmet5 && 
                     armorType is not ArmorType.Boots5) 
                     {continue;} //Add for testing purposes ///TODO: REMOVE
                 var isSuccessful = await FetchAndStoreArmorsAsync(armorType);
@@ -160,10 +163,11 @@ public class CheckThePricesService : ICheckThePricesService
                 }
                 catch(Exception ex)
                 {
-                    if(ex.Message.Equals("'(' is an invalid start of a value. Path: $ | LineNumber: 0 | BytePositionInLine: 0."))  
+                    if(ex is System.Text.Json.JsonException)
                     {
                         _logger.LogInformation($"{nameof(CheckThePricesService)}: Decompression related error. AGAIN.");
                     }
+                    _logger.LogWarning($"{nameof(CheckThePricesService)}: Exception {ex.Message}.");
                     break;
                 }
             }
@@ -212,10 +216,11 @@ public class CheckThePricesService : ICheckThePricesService
                 }
                 catch(Exception ex)
                 {
-                    if(ex.Message.Equals("'(' is an invalid start of a value. Path: $ | LineNumber: 0 | BytePositionInLine: 0."))  
+                    if(ex is System.Text.Json.JsonException)
                     {
                         _logger.LogInformation($"{nameof(CheckThePricesService)}: Decompression related error. AGAIN.");
                     }
+                    _logger.LogWarning($"{nameof(CheckThePricesService)}: Exception {ex.Message}.");
                     break;
                 }
             }
