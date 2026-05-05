@@ -17,6 +17,7 @@ using TradeBot.Base;
 using TradeBot.Base.Objects;
 using TradeBot.Base.Models;
 using TradeBot.Base.Configuration;
+using EFCore.BulkExtensions;
 
 
 namespace TradeBot.Core.Services;
@@ -54,6 +55,39 @@ public class CheckThePricesService : ICheckThePricesService
         _initialTransactionRequestUriBuilder = new UriBuilder(requestData.Value.BaseUrl);
         _batchRequestUriBuilder = new UriBuilder(requestData.Value.BaseBatchUrl);
         _headers = requestData.Value.HttpHeadersDictionary;
+    }
+
+    public async Task<ItemPriceResponseModel> GetItemPriceAsync(ItemPriceRequestModel itemPriceRequest)
+    {
+        ItemPriceResponseModel itemPriceResponse = new ()
+        {
+            ItemCode = itemPriceRequest.ItemCode
+        };
+        if (Enum.TryParse<ArmorType>(itemPriceRequest.ItemCode,ignoreCase: true, out ArmorType armor))
+        {
+            var stat = itemPriceRequest.Skills.First().Value;
+            var armorPrice = await _dbContext.ArmorPrices.Where(ar => ar.Type == armor && 
+            ar.Stat == stat).Select(ar => ar.Price).SingleAsync();
+            itemPriceResponse.Stats = $"({stat})";
+            itemPriceResponse.Price = armorPrice;
+            
+            return itemPriceResponse;
+        }
+        
+        if (Enum.TryParse<WeaponType>(itemPriceRequest.ItemCode,ignoreCase: true, out WeaponType weapon))
+        {
+            var attack = itemPriceRequest.Skills[Constants.EquipmentLookup.AttackStatName];
+            var crit = itemPriceRequest.Skills[Constants.EquipmentLookup.CritStatName];
+            var weaponPrice = await _dbContext.WeaponPrices.Where(w => 
+            w.Type == weapon && 
+            w.Crit == crit &&
+            w.Attack == attack).Select(w => w.Price).SingleAsync();
+            itemPriceResponse.Stats = $"({attack}-{crit})";
+            itemPriceResponse.Price = weaponPrice;
+
+            return itemPriceResponse;
+        }
+        throw new Exception($"{nameof(CheckThePricesService)}:{nameof(GetItemPriceAsync)}: Failed to parse item code!");
     }
 
     public async Task<CheckPricesResult> CheckPricesAsync()
