@@ -90,6 +90,58 @@ public class CheckThePricesService : ICheckThePricesService
         }
         throw new Exception($"{nameof(CheckThePricesService)}:{nameof(GetItemPriceAsync)}: Failed to parse item code!");
     }
+    
+    public async Task<bool> SetItemPriceAsync(ItemSetPriceRequestModel itemPriceRequest)
+    {        
+        if (Enum.TryParse<ArmorType>(itemPriceRequest.ItemCode,ignoreCase: true, out ArmorType armor))
+        {
+            var stat = itemPriceRequest.Skills.First().Value;
+            var armorPrice = await _dbContext.ArmorPrices.Where(ar => ar.Type == armor && 
+            ar.Stat == stat).FirstOrDefaultAsync();
+              
+            if (armorPrice != null)
+            {
+                _dbContext.ArmorPrices.Update(armorPrice);                
+                armorPrice.Price = itemPriceRequest.Price;
+                try
+                {  
+                    await _dbContext.SaveChangesAsync();
+                }
+                catch(Exception ex)
+                {
+                    _logger.LogWarning($"{nameof(CheckThePricesService)}: Exception was caught during {nameof(SetItemPriceAsync)} of armor item. {ex.Message}");
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        if (Enum.TryParse<WeaponType>(itemPriceRequest.ItemCode,ignoreCase: true, out WeaponType weapon))
+        {
+            var attack = itemPriceRequest.Skills[Constants.EquipmentLookup.AttackStatName];
+            var crit = itemPriceRequest.Skills[Constants.EquipmentLookup.CritStatName];
+            var weaponPrice = await _dbContext.WeaponPrices.Where(w => 
+            w.Type == weapon && 
+            w.Crit == crit &&
+            w.Attack == attack).FirstOrDefaultAsync();
+           if (weaponPrice != null)
+            {
+                _dbContext.WeaponPrices.Update(weaponPrice);                
+                weaponPrice.Price = itemPriceRequest.Price;
+                try
+                {  
+                    await _dbContext.SaveChangesAsync();
+                }
+                catch(Exception ex)
+                {
+                    _logger.LogWarning($"{nameof(CheckThePricesService)}: Exception was caught during {nameof(SetItemPriceAsync)} of weapon item. {ex.Message}");
+                    return false;
+                }
+                return true;
+            }
+        }
+        return false;
+    }
 
     public async Task<CheckPricesResult> CheckPricesAsync()
     {

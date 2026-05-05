@@ -9,22 +9,22 @@ using System;
 
 namespace AzureFunctionApp.Functions
 {
-    public class ItemPriceHttpFunction
+    public class GetItemPriceHttpFunction
     {
-        private readonly ILogger<ItemPriceHttpFunction> _logger;
+        private readonly ILogger<GetItemPriceHttpFunction> _logger;
         private readonly ICheckThePricesService _priceService;
 
-        public ItemPriceHttpFunction(
-            ILogger<ItemPriceHttpFunction> logger, 
+        public GetItemPriceHttpFunction(
+            ILogger<GetItemPriceHttpFunction> logger, 
             ICheckThePricesService priceService)
         {
             _logger = logger;
             _priceService = priceService;
         }
 
-        [Function(nameof(ItemPriceHttpFunction))]
+        [Function(nameof(GetItemPriceHttpFunction))]
         public async Task<HttpResponseData> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "prices")] HttpRequestData req, [FromBody] ItemPriceRequestModel itemTypePriceRequestModel)
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "prices")] HttpRequestData req, [FromBody] ItemPriceRequestModel itemTypePriceRequestModel)
         {
             _logger.LogDebug("HTTP trigger function processed a request.");
             
