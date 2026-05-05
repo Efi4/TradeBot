@@ -74,7 +74,7 @@ public class CheckThePricesService : ICheckThePricesService
 
             foreach(var weaponType in Enum.GetValues<WeaponType>())
             {
-                if (weaponType is not WeaponType.Tank && weaponType is not WeaponType.Sniper) {continue;} //Add for testing purposes ///TODO: REMOVE
+                // if (weaponType is not WeaponType.Tank && weaponType is not WeaponType.Sniper) {continue;} //Add for testing purposes ///TODO: REMOVE
                 var isSuccessful = await FetchAndStoreWeaponsAsync(weaponType);
                 if(isSuccessful) 
                 {
@@ -94,7 +94,9 @@ public class CheckThePricesService : ICheckThePricesService
                     armorType is not ArmorType.Gloves4 &&
                     armorType is not ArmorType.Gloves5 &&
                     armorType is not ArmorType.Helmet5 && 
-                    armorType is not ArmorType.Boots5) 
+                    armorType is not ArmorType.Boots5 &&
+                    armorType is not ArmorType.Gloves6 &&
+                    armorType is not ArmorType.Boots6) 
                     {continue;} //Add for testing purposes ///TODO: REMOVE
                 var isSuccessful = await FetchAndStoreArmorsAsync(armorType);
                 if(isSuccessful) 
@@ -128,108 +130,92 @@ public class CheckThePricesService : ICheckThePricesService
 
     private async Task<bool> FetchAndStoreWeaponsAsync(WeaponType weaponType)
     {
-        try
+        var itemCode = weaponType.ToString().ToLower();
+        var weaponListRequest = PrepareRequest(itemCode);
+        _logger.LogDebug($"{nameof(CheckThePricesService)}: Making initial fetch POST request to get {Constants.EquipmentLookup.NameMapping[itemCode]} weapon.");
+        var initialResponse = await _httpClient.SendAsync(weaponListRequest);
+        
+        if (!initialResponse.IsSuccessStatusCode)
         {
-            var itemCode = weaponType.ToString().ToLower();
-            var weaponListRequest = PrepareRequest(itemCode);
-            _logger.LogDebug($"{nameof(CheckThePricesService)}: Making initial fetch POST request to get {Constants.EquipmentLookup.NameMapping[itemCode]} weapon.");
-            var initialResponse = await _httpClient.SendAsync(weaponListRequest);
-            
-            if (!initialResponse.IsSuccessStatusCode)
-            {
-                _logger.LogWarning($"{nameof(CheckThePricesService)}: Initial {Constants.EquipmentLookup.NameMapping[itemCode]} weapon fetch request failed with status code: {initialResponse.StatusCode} and reason: {initialResponse.ReasonPhrase}");
-                await _azureStorageHelper.PushToNotificationsQueueEncodedAsync($"Application encountered {initialResponse.StatusCode}-{initialResponse.ReasonPhrase} response.");
-                return false;
-            }
-
-            var initialData = await ParseResponseContent(initialResponse.Content);
-            await ProcessPossibleWeaponTradeDealsAsync(initialData.ItemsModel);
-
-            FillWeaponCollection(initialData.ItemsModel);
-            var nextCursor = initialData.NextCursor;
-
-            while(nextCursor != null) 
-            {
-                var batchWeaponRequest = PrepareBatchRequest(itemCode, nextCursor);
-                _logger.LogDebug($"{nameof(CheckThePricesService)}: Making {Constants.EquipmentLookup.NameMapping[itemCode]} weapon batch fetch POST request with cursor: {nextCursor}");
-                try
-                {
-                    var nextBatchResponse = await _httpClient.SendAsync(batchWeaponRequest);
-                    var batchData = await ParseResponseContent(nextBatchResponse.Content);
-                    await ProcessPossibleWeaponTradeDealsAsync(batchData.ItemsModel);
-
-                    FillWeaponCollection(batchData.ItemsModel);
-                    nextCursor = batchData.NextCursor;
-                }
-                catch(Exception ex)
-                {
-                    if(ex is System.Text.Json.JsonException)
-                    {
-                        _logger.LogInformation($"{nameof(CheckThePricesService)}: Decompression related error. AGAIN.");
-                    }
-                    _logger.LogWarning($"{nameof(CheckThePricesService)}: Exception {ex.Message}.");
-                    break;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"{nameof(CheckThePricesService)}: Fetch of weapons resulted in error: {ex.Message}");
+            _logger.LogWarning($"{nameof(CheckThePricesService)}: Initial {Constants.EquipmentLookup.NameMapping[itemCode]} weapon fetch request failed with status code: {initialResponse.StatusCode} and reason: {initialResponse.ReasonPhrase}");
+            await _azureStorageHelper.PushToNotificationsQueueEncodedAsync($"Application encountered {initialResponse.StatusCode}-{initialResponse.ReasonPhrase} response.");
+            throw new Exception($"{nameof(CheckThePricesService)}: Request to host indicates no success.");
         }
 
+        var initialData = await ParseResponseContent(initialResponse.Content);
+        await ProcessPossibleWeaponTradeDealsAsync(initialData.ItemsModel);
+
+        FillWeaponCollection(initialData.ItemsModel);
+        var nextCursor = initialData.NextCursor;
+
+        while(nextCursor != null) 
+        {
+            var batchWeaponRequest = PrepareBatchRequest(itemCode, nextCursor);
+            _logger.LogDebug($"{nameof(CheckThePricesService)}: Making {Constants.EquipmentLookup.NameMapping[itemCode]} weapon batch fetch POST request with cursor: {nextCursor}");
+            try
+            {
+                var nextBatchResponse = await _httpClient.SendAsync(batchWeaponRequest);
+                var batchData = await ParseResponseContent(nextBatchResponse.Content);
+                await ProcessPossibleWeaponTradeDealsAsync(batchData.ItemsModel);
+
+                FillWeaponCollection(batchData.ItemsModel);
+                nextCursor = batchData.NextCursor;
+            }
+            catch(Exception ex)
+            {
+                if(ex is System.Text.Json.JsonException)
+                {
+                    _logger.LogInformation($"{nameof(CheckThePricesService)}: Decompression related error. AGAIN.");
+                }
+                _logger.LogWarning($"{nameof(CheckThePricesService)}: Exception {ex.Message}.");
+                break;
+            }
+        }
         return true;
     }
 
     private async Task<bool> FetchAndStoreArmorsAsync(ArmorType armorType)
     {
-        try
+        var itemCode = armorType.ToString().ToLower();
+        var armorListRequest = PrepareRequest(itemCode);
+        _logger.LogDebug($"{nameof(CheckThePricesService)}: Making initial fetch POST request to get {Constants.EquipmentLookup.NameMapping[itemCode]} armor items.");
+        var initialResponse = await _httpClient.SendAsync(armorListRequest);
+        
+        if (!initialResponse.IsSuccessStatusCode)
         {
-            var itemCode = armorType.ToString().ToLower();
-            var armorListRequest = PrepareRequest(itemCode);
-            _logger.LogDebug($"{nameof(CheckThePricesService)}: Making initial fetch POST request to get {Constants.EquipmentLookup.NameMapping[itemCode]} armor items.");
-            var initialResponse = await _httpClient.SendAsync(armorListRequest);
-            
-            if (!initialResponse.IsSuccessStatusCode)
-            {
-                _logger.LogWarning($"{nameof(CheckThePricesService)}: Initial {Constants.EquipmentLookup.NameMapping[itemCode]} armor fetch request failed with status code: {initialResponse.StatusCode} and reason: {initialResponse.ReasonPhrase}");
-                await _azureStorageHelper.PushToNotificationsQueueEncodedAsync($"Application encountered {initialResponse.StatusCode}-{initialResponse.ReasonPhrase} response.");
-                return false;
-            }
-
-            var initialData = await ParseResponseContent(initialResponse.Content);
-            await ProcessPossibleArmorTradeDealsAsync(initialData.ItemsModel);
- 
-            FillArmorCollection(initialData.ItemsModel);
-            var nextCursor = initialData.NextCursor;
-
-            while(nextCursor != null)
-            {
-                var batchArmorRequest = PrepareBatchRequest(itemCode, nextCursor);
-                _logger.LogDebug($"{nameof(CheckThePricesService)}: Making armor batch fetch POST request to get {Constants.EquipmentLookup.NameMapping[itemCode]} with cursor: {nextCursor}");
-                try
-                {
-                    var nextBatchResponse = await _httpClient.SendAsync(batchArmorRequest);
-                    var batchData = await ParseResponseContent(nextBatchResponse.Content);
-                    await ProcessPossibleArmorTradeDealsAsync(batchData.ItemsModel);
-                    FillArmorCollection(batchData.ItemsModel);
-                    nextCursor = batchData.NextCursor;
-                }
-                catch(Exception ex)
-                {
-                    if(ex is System.Text.Json.JsonException)
-                    {
-                        _logger.LogInformation($"{nameof(CheckThePricesService)}: Decompression related error. AGAIN.");
-                    }
-                    _logger.LogWarning($"{nameof(CheckThePricesService)}: Exception {ex.Message}.");
-                    break;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"{nameof(CheckThePricesService)}: Fetch of armors resulted in error: {ex.Message}");
+            _logger.LogWarning($"{nameof(CheckThePricesService)}: Initial {Constants.EquipmentLookup.NameMapping[itemCode]} armor fetch request failed with status code: {initialResponse.StatusCode} and reason: {initialResponse.ReasonPhrase}");
+            await _azureStorageHelper.PushToNotificationsQueueEncodedAsync($"Application encountered {initialResponse.StatusCode}-{initialResponse.ReasonPhrase} response.");
+            throw new Exception($"{nameof(CheckThePricesService)}: Request to host indicates no success.");
         }
 
+        var initialData = await ParseResponseContent(initialResponse.Content);
+        await ProcessPossibleArmorTradeDealsAsync(initialData.ItemsModel);
+
+        FillArmorCollection(initialData.ItemsModel);
+        var nextCursor = initialData.NextCursor;
+
+        while(nextCursor != null)
+        {
+            var batchArmorRequest = PrepareBatchRequest(itemCode, nextCursor);
+            _logger.LogDebug($"{nameof(CheckThePricesService)}: Making armor batch fetch POST request to get {Constants.EquipmentLookup.NameMapping[itemCode]} with cursor: {nextCursor}");
+            try
+            {
+                var nextBatchResponse = await _httpClient.SendAsync(batchArmorRequest);
+                var batchData = await ParseResponseContent(nextBatchResponse.Content);
+                await ProcessPossibleArmorTradeDealsAsync(batchData.ItemsModel);
+                FillArmorCollection(batchData.ItemsModel);
+                nextCursor = batchData.NextCursor;
+            }
+            catch(Exception ex)
+            {
+                if(ex is System.Text.Json.JsonException)
+                {
+                    _logger.LogInformation($"{nameof(CheckThePricesService)}: Decompression related error. AGAIN.");
+                }
+                _logger.LogWarning($"{nameof(CheckThePricesService)}: Exception {ex.Message}.");
+                break;
+            }
+        }
         return true;
     }
 
