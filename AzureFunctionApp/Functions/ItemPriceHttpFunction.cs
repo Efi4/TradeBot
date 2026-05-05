@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using TradeBot.Core.Interfaces;
 using TradeBot.Base.Models;
+using System;
 
 namespace AzureFunctionApp.Functions
 {
@@ -26,11 +27,17 @@ namespace AzureFunctionApp.Functions
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "prices")] HttpRequestData req, [FromBody] ItemPriceRequestModel itemTypePriceRequestModel)
         {
             _logger.LogDebug("HTTP trigger function processed a request.");
-
-            ItemPriceResponseModel itemPriceResponse = await _priceService.GetItemPriceAsync(itemTypePriceRequestModel);
-
+            
             var response = req.CreateResponse(HttpStatusCode.OK);
-            await response.WriteAsJsonAsync(itemPriceResponse);
+            try
+            {
+               ItemPriceResponseModel itemPriceResponse = await _priceService.GetItemPriceAsync(itemTypePriceRequestModel);
+               await response.WriteAsJsonAsync(itemPriceResponse);
+            }
+            catch(Exception ex)
+            {
+                await response.WriteStringAsync($"Failed to process: {ex.Message}");   
+            }
             return response;
         }
     }
