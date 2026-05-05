@@ -61,7 +61,8 @@ public class CheckThePricesService : ICheckThePricesService
     {
         ItemPriceResponseModel itemPriceResponse = new ()
         {
-            ItemCode = itemPriceRequest.ItemCode
+            ItemName = Constants.EquipmentLookup.NameMapping[itemPriceRequest.ItemCode],
+            Stats = String.Empty
         };
         if (Enum.TryParse<ArmorType>(itemPriceRequest.ItemCode,ignoreCase: true, out ArmorType armor))
         {
@@ -73,7 +74,7 @@ public class CheckThePricesService : ICheckThePricesService
             
             return itemPriceResponse;
         }
-        
+
         if (Enum.TryParse<WeaponType>(itemPriceRequest.ItemCode,ignoreCase: true, out WeaponType weapon))
         {
             var attack = itemPriceRequest.Skills[Constants.EquipmentLookup.AttackStatName];
