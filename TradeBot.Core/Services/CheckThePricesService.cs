@@ -74,7 +74,6 @@ public class CheckThePricesService : ICheckThePricesService
 
             foreach(var weaponType in Enum.GetValues<WeaponType>())
             {
-                // if (weaponType is not WeaponType.Tank && weaponType is not WeaponType.Sniper) {continue;} //Add for testing purposes ///TODO: REMOVE
                 var isSuccessful = await FetchAndStoreWeaponsAsync(weaponType);
                 if(isSuccessful) 
                 {
@@ -87,20 +86,6 @@ public class CheckThePricesService : ICheckThePricesService
 
             foreach(var armorType in Enum.GetValues<ArmorType>())
             {
-                if (armorType is not ArmorType.Helmet3 && 
-                    armorType is not ArmorType.Boots3 &&
-                    armorType is not ArmorType.Boots4 &&
-                    armorType is not ArmorType.Helmet4 && 
-                    armorType is not ArmorType.Boots4 && 
-                    armorType is not ArmorType.Pants4 && 
-                    armorType is not ArmorType.Chest4 && 
-                    armorType is not ArmorType.Gloves4 &&
-                    armorType is not ArmorType.Gloves5 &&
-                    armorType is not ArmorType.Helmet5 && 
-                    armorType is not ArmorType.Boots5 &&
-                    armorType is not ArmorType.Gloves6 &&
-                    armorType is not ArmorType.Boots6) 
-                    {continue;} //Add for testing purposes ///TODO: REMOVE
                 var isSuccessful = await FetchAndStoreArmorsAsync(armorType);
                 if(isSuccessful) 
                 {
@@ -170,7 +155,9 @@ public class CheckThePricesService : ICheckThePricesService
                 {
                     _logger.LogInformation($"{nameof(CheckThePricesService)}: Decompression related error. AGAIN.");
                 }
+                else {
                 _logger.LogWarning($"{nameof(CheckThePricesService)}: Exception {ex.Message}.");
+                }
                 break;
             }
         }
@@ -215,7 +202,9 @@ public class CheckThePricesService : ICheckThePricesService
                 {
                     _logger.LogInformation($"{nameof(CheckThePricesService)}: Decompression related error. AGAIN.");
                 }
+                else {
                 _logger.LogWarning($"{nameof(CheckThePricesService)}: Exception {ex.Message}.");
+                }
                 break;
             }
         }
