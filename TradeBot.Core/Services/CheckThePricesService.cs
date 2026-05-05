@@ -103,6 +103,7 @@ public class CheckThePricesService : ICheckThePricesService
 
             result.Success = true;
             _logger.LogDebug($"{nameof(CheckThePricesService)}: Price check completed");
+            
             await _azureStorageHelper.PushToNotificationsQueueEncodedAsync($"Price check was completed. {result.ItemsChecked} items checked, {result.DealsFound} deals found.");
 
             return result;

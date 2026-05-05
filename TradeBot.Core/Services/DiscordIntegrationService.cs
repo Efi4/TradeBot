@@ -50,7 +50,7 @@ public class DiscordIntegrationService : IDiscordIntegrationService
     {
         var discordChannelPostRequest = new HttpRequestMessage(HttpMethod.Post, _discordIntegrationOptions.Value.WebHookUrl)
         {
-            Content = new StringContent("{\"content\": \"Trade deal is available: " +
+            Content = new StringContent("{\"content\": \"" +
             $"{Constants.EquipmentLookup.NameMapping[equipmentData.Item.ItemCode]}"+
             $"({string.Join("-",equipmentData.Item.Skills.Values)}),{equipmentData.Price} gold, "+
             $"<t:{new DateTimeOffset(equipmentData.CreatedAt).ToUnixTimeSeconds()}:R>,"+
@@ -64,7 +64,7 @@ public class DiscordIntegrationService : IDiscordIntegrationService
     }
     private HttpRequestMessage PrepareNotificationRequest(string message)
     {
-        var discordChannelPostRequest = new HttpRequestMessage(HttpMethod.Post, _discordIntegrationOptions.Value.WebHookUrl)
+        var discordChannelPostRequest = new HttpRequestMessage(HttpMethod.Post, _discordIntegrationOptions.Value.NotificationsWebHookUrl)
         {
             Content = new StringContent("{\"content\": \""+
             $"{message}"+
