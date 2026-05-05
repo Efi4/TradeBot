@@ -30,18 +30,18 @@ namespace AzureFunctionApp.Functions
                 var armorPricesList = await _priceService.CalculateAverageArmorPricesAsync();
                 if(weaponPricesList.Count>0 && armorPricesList.Count>0)
                 {
-                    _logger.LogDebug($"Average price calculation succeeded.");
+                    _logger.LogInformation($"Average price calculation succeeded. {weaponPricesList.Count + armorPricesList.Count} prices were added/updated.");
                     
-                    _logger.LogInformation($"New batch of weapon prices ({weaponPricesList.Count} items):");
+                    _logger.LogDebug($"New batch of weapon prices ({weaponPricesList.Count} items):");
                     foreach (var weapon in weaponPricesList)
                     {
-                        _logger.LogInformation($" {weapon.Type}({weapon.Crit}-{weapon.Attack}) costs {weapon.Price} in reasonable average.");
+                        _logger.LogDebug($" {weapon.Type}({weapon.Crit}-{weapon.Attack}) costs {weapon.Price} in reasonable average.");
                     }
                     
-                    _logger.LogInformation($"New batch of armor items prices ({armorPricesList.Count} items):");
+                    _logger.LogDebug($"New batch of armor items prices ({armorPricesList.Count} items):");
                     foreach (var armor in armorPricesList)
                     {
-                        _logger.LogInformation($" {armor.Type}({armor.Stat}) costs {armor.Price} in reasonable average.");
+                        _logger.LogDebug($" {armor.Type}({armor.Stat}) costs {armor.Price} in reasonable average.");
                     }
                 }
             }

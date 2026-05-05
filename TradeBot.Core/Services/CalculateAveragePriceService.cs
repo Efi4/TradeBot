@@ -35,7 +35,7 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
         var weaponCount = await _dbContext.Weapons.CountAsync();
         if(weaponCount == 0)
         {
-            _logger.LogWarning($"{nameof(CalculateAveragePriceService)}: No weapon items were found in the database. Calculating average price is not possible.");
+            _logger.LogDebug($"{nameof(CalculateAveragePriceService)}: No weapon items were found in the database. Calculating average price is not possible.");
             return averagePriceList;
         }
         try
@@ -90,7 +90,7 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
         var armorCount = await _dbContext.Armors.CountAsync();
         if(armorCount == 0)
         {
-            _logger.LogWarning($"{nameof(CalculateAveragePriceService)}: No armor items were found in the database. Calculating average price is not possible.");
+            _logger.LogDebug($"{nameof(CalculateAveragePriceService)}: No armor items were found in the database. Calculating average price is not possible.");
             return averagePriceList;
         }
         _logger.LogDebug($"{nameof(CalculateAveragePriceService)}: Starting to calculate average armor prices...");
@@ -107,7 +107,7 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
                 var armorTypeExists = await _dbContext.Armors.AnyAsync(ar => ar.Type == armorType);
                 if(!armorTypeExists)
                 {
-                    _logger.LogWarning($"{nameof(CalculateAveragePriceService)}: Armor items for type {armorType} was not found in database. Average price calculation for this position will be skipped.");
+                    _logger.LogInformation($"{nameof(CalculateAveragePriceService)}: Armor items for type {armorType} was not found in database. Average price calculation for this position will be skipped.");
                     continue;
                 }
 
