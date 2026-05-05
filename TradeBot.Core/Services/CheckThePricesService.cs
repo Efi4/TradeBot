@@ -87,7 +87,10 @@ public class CheckThePricesService : ICheckThePricesService
 
             foreach(var armorType in Enum.GetValues<ArmorType>())
             {
-                if (armorType is not ArmorType.Helmet4 && 
+                if (armorType is not ArmorType.Helmet3 && 
+                    armorType is not ArmorType.Boots3 &&
+                    armorType is not ArmorType.Boots4 &&
+                    armorType is not ArmorType.Helmet4 && 
                     armorType is not ArmorType.Boots4 && 
                     armorType is not ArmorType.Pants4 && 
                     armorType is not ArmorType.Chest4 && 
