@@ -153,7 +153,6 @@ public class CheckThePricesService : ICheckThePricesService
         {
             foreach(var weaponType in Enum.GetValues<WeaponType>())
             {
-                if(weaponType is not WeaponType.Jet) {continue;}
                 var isSuccessful = await FetchAndStoreWeaponsAsync(weaponType);
                 if(isSuccessful) 
                 {
