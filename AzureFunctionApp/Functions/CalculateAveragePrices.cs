@@ -20,7 +20,7 @@ namespace AzureFunctionApp.Functions
 
         [Function(nameof(CalculateAveragePrices))]
         public async Task Run(
-            [TimerTrigger("30 */11 * * * *")] TimerInfo myTimer)
+            [TimerTrigger("0 0 */2 * * *")] TimerInfo myTimer)
         {
             _logger.LogDebug($"{nameof(CalculateAveragePrices)}: Timer trigger function executed at: {DateTime.Now}");
             
