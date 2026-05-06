@@ -41,7 +41,6 @@ public class TradingDbContext(DbContextOptions<TradingDbContext> options) : DbCo
         {
             entity.ToTable("Weapons");
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.Type).IsRequired();
             entity.Property(e => e.Price).HasPrecision(10, 5);
             entity.Property(e => e.Attack).IsRequired();
@@ -52,7 +51,6 @@ public class TradingDbContext(DbContextOptions<TradingDbContext> options) : DbCo
         {
             entity.ToTable("Armors");
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.Type).IsRequired();
             entity.Property(e => e.Price).HasPrecision(10, 5);
             entity.Property(e => e.Stat).IsRequired();

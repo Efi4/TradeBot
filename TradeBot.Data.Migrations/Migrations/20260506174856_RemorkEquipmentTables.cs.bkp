@@ -1,0 +1,95 @@
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace TradeBot.Data.Migrations.Migrations
+{
+    /// <inheritdoc />
+    public partial class RemorkEquipmentTables : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropPrimaryKey(
+                name: "PK_Weapons",
+                table: "Weapons");
+
+            migrationBuilder.DropPrimaryKey(
+                name: "PK_Armors",
+                table: "Armors");
+
+            migrationBuilder.DropColumn(
+                name: "Id",
+                table: "Weapons");
+
+            migrationBuilder.DropColumn(
+                name: "Id",
+                table: "Armors");
+            
+            migrationBuilder.AddColumn<string>(
+                name: "Id",
+                table: "Weapons",
+                type: "nvarchar(50)",
+                nullable: false,
+                defaultValueSql: "CONVERT(nvarchar(50), NEWID())");
+
+            migrationBuilder.AddColumn<string>(
+                name: "Id",
+                table: "Armors",
+                type: "nvarchar(50)",
+                nullable: false);
+
+            migrationBuilder.AddPrimaryKey(
+                name: "PK_Weapons",
+                table: "Weapons",
+                column: "Id");
+
+            migrationBuilder.AddPrimaryKey(
+                name: "PK_Armors",
+                table: "Armors",
+                column: "Id");
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropPrimaryKey(
+                name: "PK_Weapons",
+                table: "Weapons");
+
+            migrationBuilder.DropPrimaryKey(
+                name: "PK_Armors",
+                table: "Armors");
+
+            migrationBuilder.DropColumn(
+                name: "Id",
+                table: "Weapons");
+
+            migrationBuilder.DropColumn(
+                name: "Id",
+                table: "Armors");
+
+            migrationBuilder.AddColumn<int>(
+                name: "Id",
+                table: "Weapons",
+                nullable: false,
+                defaultValue: 0);
+
+            migrationBuilder.AddColumn<int>(
+                name: "Id",
+                table: "Armors",
+                nullable: false,
+                defaultValue: 0);
+
+            migrationBuilder.AddPrimaryKey(
+                name: "PK_Weapons",
+                table: "Weapons",
+                column: "Id");
+
+            migrationBuilder.AddPrimaryKey(
+                name: "PK_Armors",
+                table: "Armors",
+                column: "Id");
+        }
+    }
+}

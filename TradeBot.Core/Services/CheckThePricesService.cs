@@ -145,31 +145,24 @@ public class CheckThePricesService : ICheckThePricesService
 
     public async Task<CheckPricesResult> CheckPricesAsync()
     {
-        _logger.LogDebug($"{nameof(CheckThePricesService)}: Clearing equipment tables.");
-        await ClearEquipmentTables();
-
         _logger.LogDebug($"{nameof(CheckThePricesService)}: Starting to check prices...");
         var result = new CheckPricesResult();
 
         PrepareQuerryStringParameters();
         try
         {
-            var armorPricesCount = await _dbContext.ArmorPrices.CountAsync();
-            _logger.LogDebug($"{nameof(CheckThePricesService)}: Found {armorPricesCount} prices of armor items.");
-            var weaponPricesCount = await _dbContext.WeaponPrices.CountAsync();  
-            _logger.LogDebug($"{nameof(CheckThePricesService)}: Found {weaponPricesCount} prices of weapon items.");
-
             foreach(var weaponType in Enum.GetValues<WeaponType>())
             {
+                if(weaponType is not WeaponType.Jet) {continue;}
                 var isSuccessful = await FetchAndStoreWeaponsAsync(weaponType);
                 if(isSuccessful) 
                 {
                     result.Messages.Add($"{weaponType} weapons were checked.");
                 }
             }
-            // Insert weapons found into database
-            await InsertWeaponsAsync(_weapons);
-            result.Messages.Add($"{_weapons.Count} weapons were added in database.");
+
+            await MergeWeaponsAsync(_weapons);
+            result.Messages.Add($"{_weapons.Count} weapons were upserted in database.");
 
             foreach(var armorType in Enum.GetValues<ArmorType>())
             {
@@ -179,9 +172,9 @@ public class CheckThePricesService : ICheckThePricesService
                     result.Messages.Add($"{armorType} armor were checked.");
                 }
             }
-            // Insert armor found into database
-            await InsertArmorsAsync(_armors);
-            result.Messages.Add($"{_armors.Count} armor items were added in database.");
+
+            await MergeArmorsAsync(_armors);
+            result.Messages.Add($"{_armors.Count} armor items were upserted in database.");
 
             result.ItemsChecked = _weapons.Count + _armors.Count;
             _logger.LogDebug($"{nameof(CheckThePricesService)}: Items checked: {result.ItemsChecked}");  
@@ -429,35 +422,39 @@ public class CheckThePricesService : ICheckThePricesService
 
     private void FillWeaponCollection(List<EquipmentResponseModel> weaponList)
     {
-        foreach(var item in weaponList)
+        foreach(var equipment in weaponList)
         {
-            if (item.Price > 2000m) 
+            if (equipment.Price > 2000m) 
             {
                 continue;
             }
             _weapons.Add(new Weapon
             {
-                Type = Enum.Parse<WeaponType>(item.ItemCode, ignoreCase: true),
-                Price = item.Price,
-                Attack = item.Item.Skills[Constants.EquipmentLookup.AttackStatName],
-                Crit = item.Item.Skills[Constants.EquipmentLookup.CritStatName]
+                Id = equipment.Item.Id,
+                CreatedAt = equipment.CreatedAt,
+                Type = Enum.Parse<WeaponType>(equipment.ItemCode, ignoreCase: true),
+                Price = equipment.Price,
+                Attack = equipment.Item.Skills[Constants.EquipmentLookup.AttackStatName],
+                Crit = equipment.Item.Skills[Constants.EquipmentLookup.CritStatName]
             });
         }
     }
 
     private void FillArmorCollection(List<EquipmentResponseModel> armorList)    
     {
-        foreach(var item in armorList)
+        foreach(var equipment in armorList)
         {
-            if (item.Price > 2000m) 
+            if (equipment.Price > 2000m) 
             {
                 continue;
             }
             _armors.Add(new Armor
             {
-                Type = Enum.Parse<ArmorType>(item.ItemCode, ignoreCase: true),
-                Price = item.Price,
-                Stat = item.Item.Skills.First().Value    
+                Id = equipment.Item.Id,
+                CreatedAt = equipment.CreatedAt,
+                Type = Enum.Parse<ArmorType>(equipment.ItemCode, ignoreCase: true),
+                Price = equipment.Price,
+                Stat = equipment.Item.Skills.First().Value    
             });
         }
     }
@@ -469,31 +466,31 @@ public class CheckThePricesService : ICheckThePricesService
         return parsedContent[0].Result.Data;
     }
 
-    private async Task InsertWeaponsAsync(List<Weapon> weapons)
+    private async Task MergeWeaponsAsync(List<Weapon> weapons)
     {
         try
         {
-            await _dbContext.Weapons.AddRangeAsync(weapons);
+            await _dbContext.BulkInsertOrUpdateOrDeleteAsync(weapons);
             await _dbContext.SaveChangesAsync();
-            _logger.LogDebug($"{nameof(CheckThePricesService)}: Successfully inserted {weapons.Count} weapons into database");
+            _logger.LogDebug($"{nameof(CheckThePricesService)}: Successfully upserted {weapons.Count} weapons into database");
         }
         catch (Exception ex)
         {
-            _logger.LogError($"{nameof(CheckThePricesService)}: Error inserting weapons into database: {ex.Message}");
+            _logger.LogError($"{nameof(CheckThePricesService)}: Error during bulk update weapon items: {ex.Message}");
         }
     }
 
-    private async Task InsertArmorsAsync(List<Armor> armors)
+    private async Task MergeArmorsAsync(List<Armor> armors)
     {
         try
         {
-            await _dbContext.Armors.AddRangeAsync(armors);
+            await _dbContext.BulkInsertOrUpdateOrDeleteAsync(armors);
             await _dbContext.SaveChangesAsync();
-            _logger.LogDebug($"{nameof(CheckThePricesService)}: Successfully inserted {armors.Count} armors into database");
+            _logger.LogDebug($"{nameof(CheckThePricesService)}: Successfully upserted {armors.Count} armors into database");
         }
         catch (Exception ex)
         {
-            _logger.LogError($"{nameof(CheckThePricesService)}: Error inserting armors into database: {ex.Message}");
+            _logger.LogError($"{nameof(CheckThePricesService)}: Error during bulk update armors: {ex.Message}");
         }
     }
 

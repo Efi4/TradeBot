@@ -10,7 +10,7 @@ namespace TradeBot.Data.Models;
 public class Weapon
 {
     [Key]
-    public int Id { get; set; }
+    public required string Id { get; set; }
 
     [Required]
     public WeaponType Type { get; set; }
