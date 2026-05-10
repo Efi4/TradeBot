@@ -22,6 +22,10 @@ using EFCore.BulkExtensions;
 
 namespace TradeBot.Core.Services;
 
+/// <summary>
+/// Service for checking market prices and retrieving/updating item price data.
+/// Manages price comparisons against average prices and identifies profitable trading opportunities.
+/// </summary>
 public class CheckThePricesService : ICheckThePricesService
 {
     private readonly ILogger<CheckThePricesService> _logger;
@@ -36,6 +40,14 @@ public class CheckThePricesService : ICheckThePricesService
     private UriBuilder _batchRequestUriBuilder;
     private Dictionary<string,string> _headers;
 
+    /// <summary>
+    /// Initializes a new instance of the CheckThePricesService class.
+    /// </summary>
+    /// <param name="logger">Logger instance for writing diagnostic messages.</param>
+    /// <param name="httpClient">HTTP client for making requests to the market API.</param>
+    /// <param name="requestData">Configuration options containing API endpoints and headers.</param>
+    /// <param name="dbContext">Database context for accessing price and item data.</param>
+    /// <param name="azureStorageHelper">Helper for queue and blob storage operations.</param>
     public CheckThePricesService(ILogger<CheckThePricesService> logger, HttpClient httpClient, IOptions<RequestDataOptions> requestData, TradingDbContext dbContext, IAzureStorageHelper azureStorageHelper)
     {
         var handler = new HttpClientHandler
@@ -57,6 +69,20 @@ public class CheckThePricesService : ICheckThePricesService
         _headers = requestData.Value.HttpHeadersDictionary;
     }
 
+    /// <summary>
+    /// Retrieves the current average price for a specific item based on its code and stats.
+    /// </summary>
+    /// <param name="itemPriceRequest">The request model containing the item code and its stats.</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation. The task result contains an ItemPriceResponseModel
+    /// with the item name, stats description, and current average price from the database.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">
+    /// Thrown when no price data exists for the specified item and stats combination.
+    /// </exception>
+    /// <exception cref="Exception">
+    /// Thrown when the item code cannot be parsed as either an armor or weapon type.
+    /// </exception>
     public async Task<ItemPriceResponseModel> GetItemPriceAsync(ItemPriceRequestModel itemPriceRequest)
     {
         ItemPriceResponseModel itemPriceResponse = new ()
@@ -91,6 +117,19 @@ public class CheckThePricesService : ICheckThePricesService
         throw new Exception($"{nameof(CheckThePricesService)}:{nameof(GetItemPriceAsync)}: Failed to parse item code!");
     }
     
+    /// <summary>
+    /// Updates the average price for a specific item in the database.
+    /// Creates a new price entry if it does not already exist.
+    /// </summary>
+    /// <param name="itemPriceRequest">The request model containing the item code, stats, and new price.</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation. The task result is a boolean indicating
+    /// whether the price update was successful (true) or failed (false).
+    /// </returns>
+    /// <remarks>
+    /// If the price entry does not exist for the given item and stats combination, this method returns false.
+    /// Exceptions during database save operations are caught and logged as warnings.
+    /// </remarks>
     public async Task<bool> SetItemPriceAsync(ItemSetPriceRequestModel itemPriceRequest)
     {        
         if (Enum.TryParse<ArmorType>(itemPriceRequest.ItemCode,ignoreCase: true, out ArmorType armor))
@@ -143,6 +182,22 @@ public class CheckThePricesService : ICheckThePricesService
         return false;
     }
 
+    /// <summary>
+    /// Checks current market prices and identifies profitable trading deals.
+    /// Compares market prices against stored average prices to find arbitrage opportunities.
+    /// </summary>
+    /// <returns>
+    /// A task that represents the asynchronous operation. The task result contains a CheckPricesResult object
+    /// with information about items checked, deals found, success status, and any messages from the operation.
+    /// </returns>
+    /// <remarks>
+    /// This method:
+    /// 1. Fetches current weapon and armor listings from the market API
+    /// 2. Compares prices against stored average prices
+    /// 3. Publishes identified trade opportunities to the queue for notification
+    /// 4. Updates the local weapon and armor lists
+    /// Exceptions during processing are caught and logged, allowing the operation to continue.
+    /// </remarks>
     public async Task<CheckPricesResult> CheckPricesAsync()
     {
         _logger.LogDebug($"{nameof(CheckThePricesService)}: Starting to check prices...");

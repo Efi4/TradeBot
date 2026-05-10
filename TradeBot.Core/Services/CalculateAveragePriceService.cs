@@ -15,12 +15,22 @@ using TradeBot.Data.Models;
 
 namespace TradeBot.Core.Services;
 
+/// <summary>
+/// Service for calculating average prices for weapons and armor in the trading system.
+/// Uses market data to compute weighted average prices, filtering out outliers by using the lowest 30% of prices.
+/// </summary>
 public class CalculateAveragePriceService : ICalculateAveragePriceService
 {
     private readonly ILogger<CalculateAveragePriceService> _logger;
     private readonly TradingDbContext _dbContext;
     private readonly IOptions<StatRangeOptions> _statRangeOptions;
 
+    /// <summary>
+    /// Initializes a new instance of the CalculateAveragePriceService class.
+    /// </summary>
+    /// <param name="logger">Logger instance for writing diagnostic messages.</param>
+    /// <param name="dbContext">Database context for accessing weapon and armor data.</param>
+    /// <param name="statRangeOptions">Configuration options for stat ranges used in calculations.</param>
     public CalculateAveragePriceService(ILogger<CalculateAveragePriceService> logger, TradingDbContext dbContext, IOptions<StatRangeOptions> statRangeOptions)
     {
         _logger = logger;
@@ -28,6 +38,10 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
         _statRangeOptions = statRangeOptions;
     }
 
+    /// <summary>
+    /// Calculates and updates average weapon prices based on market data.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a list of calculated weapon prices.</returns>
     public async Task<List<WeaponPrice>> CalculateAverageWeaponPricesAsync()
     {
         _logger.LogDebug($"{nameof(CalculateAveragePriceService)}: Starting to calculate average weapon prices...");
@@ -84,6 +98,10 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
         return averagePriceList;
     }
 
+    /// <summary>
+    /// Calculates and updates average armor prices based on market data.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a list of calculated armor prices.</returns>
     public async Task<List<ArmorPrice>> CalculateAverageArmorPricesAsync()
     {
         var averagePriceList = new List<ArmorPrice>();  
