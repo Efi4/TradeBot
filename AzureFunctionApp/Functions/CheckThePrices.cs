@@ -35,7 +35,7 @@ namespace AzureFunctionApp.Functions
         /// <returns>A task that represents the asynchronous operation.</returns>
         [Function(nameof(CheckThePrices))]
         public async Task Run(
-            [TimerTrigger("0 */5 * * * *")] TimerInfo myTimer)
+            [TimerTrigger("0 */4 * * * *")] TimerInfo myTimer)
         {
             if (DateTime.UtcNow.Hour > 1 && DateTime.UtcNow.Hour < 7)
             {
