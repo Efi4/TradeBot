@@ -81,9 +81,9 @@ public class DiscordIntegrationService : IDiscordIntegrationService
         {
             Content = new StringContent("{\"content\": \"" +
             $"{Constants.EquipmentLookup.NameMapping[equipmentData.Item.ItemCode]}"+
-            $"({string.Join("-",equipmentData.Item.Skills.Values)}),{equipmentData.Price} gold, "+
-            $"<t:{new DateTimeOffset(equipmentData.CreatedAt).ToUnixTimeSeconds()}:R>, "+
+            $"({string.Join("-",equipmentData.Item.Skills.Values)}),{1.01m*equipmentData.Price} gold, "+
             $"approx. margin {equipmentData.Margin}"+
+            $"<t:{new DateTimeOffset(equipmentData.CreatedAt).ToUnixTimeSeconds()}:R>, "+           
             "\"}",
             System.Text.Encoding.UTF8, "application/json")
         };

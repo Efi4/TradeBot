@@ -75,7 +75,7 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
                         continue;
                     }
                     var sortedPrices = weaponPositions.OrderBy(w => w.Price).ToList();
-                    var reasonableCount = (int)Math.Ceiling(sortedPrices.Count * 0.3);
+                    var reasonableCount = (int)Math.Ceiling(sortedPrices.Count * Constants.EquipmentLookup.ReasonableEquipmentTreshold);
                     var averageReasonableWeaponPrice = sortedPrices.Take(reasonableCount).Average(w => (decimal)w.Price);
                     averagePriceList.Add(new WeaponPrice
                     {
@@ -138,7 +138,7 @@ public class CalculateAveragePriceService : ICalculateAveragePriceService
                         continue;
                     }
                     var sortedArmorPrices = armorItemsPerTypePerStat.OrderBy(w => w.Price).ToList();
-                    var reasonableCount = (int)Math.Ceiling(sortedArmorPrices.Count * 0.3);
+                    var reasonableCount = (int)Math.Ceiling(sortedArmorPrices.Count * Constants.EquipmentLookup.ReasonableEquipmentTreshold);
                     var averageReasonableArmorPrice = sortedArmorPrices.Take(reasonableCount).Average(w => (decimal)w.Price);
                     averagePriceList.Add(new ArmorPrice
                     {

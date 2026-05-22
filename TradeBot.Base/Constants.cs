@@ -52,6 +52,7 @@ public static class Constants
     }
     public static class EquipmentLookup
     {
+        public const double ReasonableEquipmentTreshold = 0.2;
         public const string AttackStatName = "attack";
         public const string CritStatName = "criticalChance";
         public static Dictionary<string, string> StatMapping = new()
