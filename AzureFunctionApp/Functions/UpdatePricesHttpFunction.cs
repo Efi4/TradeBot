@@ -59,7 +59,7 @@ namespace AzureFunctionApp.Functions
             catch (Exception ex)
             {
                 _logger.LogError($"{nameof(UpdatePricesHttpFunction)}: Error {ex.Message}");
-                response.WriteStringAsync($"Updating prices failed with the error {ex.Message}");
+                await response.WriteStringAsync($"Updating prices failed with the error {ex.Message}");
             }
             return response;
         }
