@@ -18,6 +18,7 @@ using TradeBot.Base.Objects;
 using TradeBot.Base.Models;
 using TradeBot.Base.Configuration;
 using EFCore.BulkExtensions;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 
 namespace TradeBot.Core.Services;
@@ -39,6 +40,7 @@ public class CheckThePricesService : ICheckThePricesService
     private UriBuilder _initialTransactionRequestUriBuilder;
     private UriBuilder _batchRequestUriBuilder;
     private Dictionary<string,string> _headers;
+    private bool _skipProcessing = false;
 
     /// <summary>
     /// Initializes a new instance of the CheckThePricesService class.
@@ -186,6 +188,9 @@ public class CheckThePricesService : ICheckThePricesService
     /// Checks current market prices and identifies profitable trading deals.
     /// Compares market prices against stored average prices to find arbitrage opportunities.
     /// </summary>
+    /// <param name="skipProcessing">
+    /// Skip price comparison and discord notifications during the check.
+    /// </param>
     /// <returns>
     /// A task that represents the asynchronous operation. The task result contains a CheckPricesResult object
     /// with information about items checked, deals found, success status, and any messages from the operation.
@@ -198,8 +203,9 @@ public class CheckThePricesService : ICheckThePricesService
     /// 4. Updates the local weapon and armor lists
     /// Exceptions during processing are caught and logged, allowing the operation to continue.
     /// </remarks>
-    public async Task<CheckPricesResult> CheckPricesAsync()
+    public async Task<CheckPricesResult> CheckPricesAsync(bool skipProcessing = false)
     {
+        _skipProcessing = skipProcessing;
         _logger.LogDebug($"{nameof(CheckThePricesService)}: Starting to check prices...");
         var result = new CheckPricesResult();
 
@@ -266,7 +272,10 @@ public class CheckThePricesService : ICheckThePricesService
         }
 
         var initialData = await ParseResponseContent(initialResponse.Content);
-        await ProcessPossibleWeaponTradeDealsAsync(initialData.ItemsModel);
+        if(!_skipProcessing) 
+        {
+            await ProcessPossibleWeaponTradeDealsAsync(initialData.ItemsModel);
+        }
 
         FillWeaponCollection(initialData.ItemsModel);
         var nextCursor = initialData.NextCursor;
@@ -314,7 +323,10 @@ public class CheckThePricesService : ICheckThePricesService
         }
 
         var initialData = await ParseResponseContent(initialResponse.Content);
-        await ProcessPossibleArmorTradeDealsAsync(initialData.ItemsModel);
+        if(!_skipProcessing) 
+        {
+            await ProcessPossibleArmorTradeDealsAsync(initialData.ItemsModel);
+        }
 
         FillArmorCollection(initialData.ItemsModel);
         var nextCursor = initialData.NextCursor;

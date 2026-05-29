@@ -14,6 +14,9 @@ namespace TradeBot.Core.Interfaces
         /// Checks current market prices and identifies profitable trading deals.
         /// Compares market prices against stored average prices to find arbitrage opportunities.
         /// </summary>
+        /// <param name="skipProcessing">
+        /// Skip price comparison and discord notifications during the check.
+        /// </param>
         /// <returns>
         /// A task that represents the asynchronous operation. The task result contains a CheckPricesResult object
         /// with information about items checked, deals found, and any messages from the operation.
@@ -22,7 +25,7 @@ namespace TradeBot.Core.Interfaces
         /// This method fetches current market data, filters items based on average prices,
         /// and publishes identified trade opportunities to the appropriate queue for notification.
         /// </remarks>
-        Task<CheckPricesResult> CheckPricesAsync();
+        Task<CheckPricesResult> CheckPricesAsync(bool skipProcessing = false);
 
         /// <summary>
         /// Retrieves the current average price for a specific item based on its code and stats.
