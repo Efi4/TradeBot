@@ -40,7 +40,6 @@ public class CheckThePricesService : ICheckThePricesService
     private UriBuilder _initialTransactionRequestUriBuilder;
     private UriBuilder _batchRequestUriBuilder;
     private Dictionary<string,string> _headers;
-    private bool _skipProcessing = false;
 
     /// <summary>
     /// Initializes a new instance of the CheckThePricesService class.
@@ -203,9 +202,8 @@ public class CheckThePricesService : ICheckThePricesService
     /// 4. Updates the local weapon and armor lists
     /// Exceptions during processing are caught and logged, allowing the operation to continue.
     /// </remarks>
-    public async Task<CheckPricesResult> CheckPricesAsync(bool skipProcessing = false)
+    public async Task<CheckPricesResult> CheckPricesAsync(bool skipProcessing)
     {
-        _skipProcessing = skipProcessing;
         _logger.LogDebug($"{nameof(CheckThePricesService)}: Starting to check prices...");
         var result = new CheckPricesResult();
 
@@ -214,7 +212,7 @@ public class CheckThePricesService : ICheckThePricesService
         {
             foreach(var weaponType in Enum.GetValues<WeaponType>())
             {
-                var isSuccessful = await FetchAndStoreWeaponsAsync(weaponType);
+                var isSuccessful = await FetchAndStoreWeaponsAsync(weaponType, skipProcessing);
                 if(isSuccessful) 
                 {
                     result.Messages.Add($"{weaponType} weapons were checked.");
@@ -226,7 +224,7 @@ public class CheckThePricesService : ICheckThePricesService
 
             foreach(var armorType in Enum.GetValues<ArmorType>())
             {
-                var isSuccessful = await FetchAndStoreArmorsAsync(armorType);
+                var isSuccessful = await FetchAndStoreArmorsAsync(armorType, skipProcessing);
                 if(isSuccessful) 
                 {
                     result.Messages.Add($"{armorType} armor were checked.");
@@ -257,7 +255,7 @@ public class CheckThePricesService : ICheckThePricesService
         }
     }
 
-    private async Task<bool> FetchAndStoreWeaponsAsync(WeaponType weaponType)
+    private async Task<bool> FetchAndStoreWeaponsAsync(WeaponType weaponType, bool skipProcessing)
     {
         var itemCode = weaponType.ToString().ToLower();
         var weaponListRequest = PrepareRequest(itemCode);
@@ -272,7 +270,7 @@ public class CheckThePricesService : ICheckThePricesService
         }
 
         var initialData = await ParseResponseContent(initialResponse.Content);
-        if(!_skipProcessing) 
+        if(!skipProcessing) 
         {
             await ProcessPossibleWeaponTradeDealsAsync(initialData.ItemsModel);
         }
@@ -308,7 +306,7 @@ public class CheckThePricesService : ICheckThePricesService
         return true;
     }
 
-    private async Task<bool> FetchAndStoreArmorsAsync(ArmorType armorType)
+    private async Task<bool> FetchAndStoreArmorsAsync(ArmorType armorType, bool skipProcessing)
     {
         var itemCode = armorType.ToString().ToLower();
         var armorListRequest = PrepareRequest(itemCode);
@@ -323,7 +321,7 @@ public class CheckThePricesService : ICheckThePricesService
         }
 
         var initialData = await ParseResponseContent(initialResponse.Content);
-        if(!_skipProcessing) 
+        if(!skipProcessing) 
         {
             await ProcessPossibleArmorTradeDealsAsync(initialData.ItemsModel);
         }

@@ -60,7 +60,7 @@ namespace TradeBot.UnitTests.Services
         private Mock<IOptions<RequestDataOptions>> _mockRequestOptions = null!;
         private Mock<TradingDbContext> _mockDbContext = null!;
         private Mock<IAzureStorageHelper> _mockStorageHelper = null!;
-        private CheckThePricesService _sut = null!;
+        private ICheckThePricesService _sut = null!;
         private HttpClient _httpClient = null!;
 
         [OneTimeSetUp]
