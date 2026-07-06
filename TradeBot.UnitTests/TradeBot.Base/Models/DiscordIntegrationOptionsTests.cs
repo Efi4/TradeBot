@@ -10,7 +10,7 @@ public class DiscordIntegrationOptionsTests
 {
     [Test]
     [AutoData]
-    public void Ctor_PropertiesSet_SamePropertiesGet(string webhookUrl, string notificationsWebhookUrl)
+    public void Ctor_PropertiesSet_SamePropertiesGet(string webhookUrl, string notificationsWebhookUrl, string regionTransferNotificationWebHookUrl)
     {
         // Arrange
         // Act
@@ -18,11 +18,13 @@ public class DiscordIntegrationOptionsTests
         var sut = new DiscordIntegrationOptions()
         {
             WebHookUrl = webhookUrl,
-            NotificationsWebHookUrl = notificationsWebhookUrl
+            NotificationsWebHookUrl = notificationsWebhookUrl,
+            RegionTransferNotificationWebHookUrl = regionTransferNotificationWebHookUrl
         };
 
         // Assert
         sut.WebHookUrl.Should().Be(webhookUrl);
         sut.NotificationsWebHookUrl.Should().Be(notificationsWebhookUrl);
+        sut.RegionTransferNotificationWebHookUrl.Should().Be(regionTransferNotificationWebHookUrl);
     }
 }

@@ -15,4 +15,9 @@ public class DiscordIntegrationOptions
     /// Gets or sets the webhook URL for posting general system notifications to the notifications channel.
     /// </summary>
     public required string NotificationsWebHookUrl { get; set; }
+
+    /// <summary>
+    /// Gets or sets the webhook URL for posting region transert notifications to the dedicated channel.
+    /// </summary>
+    public required string RegionTransferNotificationWebHookUrl { get; set; }
 }

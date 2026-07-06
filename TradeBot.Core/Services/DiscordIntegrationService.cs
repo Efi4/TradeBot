@@ -66,7 +66,27 @@ public class DiscordIntegrationService : IDiscordIntegrationService
     /// </remarks>
     public async Task PostNotificationMessageInDedicatedChannelAsync(string message)
     {
-        var discordChannelPostRequest = PrepareNotificationRequest(message);
+        var discordChannelPostRequest = PrepareNotificationRequest(message, _discordIntegrationOptions.Value.NotificationsWebHookUrl);
+        var result = await _httpClient.SendAsync(discordChannelPostRequest);
+        if(!result.IsSuccessStatusCode)
+        {
+            _logger.LogWarning($"{nameof(DiscordIntegrationService)}: Unable to send a message. Reason:{result.ReasonPhrase}");
+        }
+        _logger.LogDebug($"{nameof(DiscordIntegrationService)}: Message was succesfully sent in dedicated discord channel.");
+    }
+
+    /// <summary>
+    /// Posts a region transfer notification message to the dedicated Discord channel.
+    /// </summary>
+    /// <param name="message">The plain text message to post in dedicated channel.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// This method is used for system notifications and alerts.
+    /// Logs a warning if the HTTP request fails but does not throw an exception.
+    /// </remarks>
+    public async Task PostRegionTransferNotificationMessageInDedicatedChannelAsync(string message)
+    {
+        var discordChannelPostRequest = PrepareNotificationRequest(message, _discordIntegrationOptions.Value.RegionTransferNotificationWebHookUrl);
         var result = await _httpClient.SendAsync(discordChannelPostRequest);
         if(!result.IsSuccessStatusCode)
         {
@@ -91,9 +111,9 @@ public class DiscordIntegrationService : IDiscordIntegrationService
 
         return discordChannelPostRequest;
     }
-    private HttpRequestMessage PrepareNotificationRequest(string message)
+    private HttpRequestMessage PrepareNotificationRequest(string message, string notificationsWebHookUrl)
     {
-        var discordChannelPostRequest = new HttpRequestMessage(HttpMethod.Post, _discordIntegrationOptions.Value.NotificationsWebHookUrl)
+        var discordChannelPostRequest = new HttpRequestMessage(HttpMethod.Post, notificationsWebHookUrl)
         {
             Content = new StringContent("{\"content\": \""+
             $"{message}"+
