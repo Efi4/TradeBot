@@ -42,7 +42,7 @@ var host = new HostBuilder()
         services.AddScoped<ICalculateAveragePriceService, CalculateAveragePriceService>();
         services.AddHttpClient<IDiscordIntegrationService, DiscordIntegrationService>();
         services.AddScoped<IDiscordIntegrationService, DiscordIntegrationService>();
-        
+        services.AddScoped<ICheckTheLawsService, CheckTheLawsService>();
         // Register AzureStorageHelper as Singleton
         services.AddSingleton<IAzureStorageHelper, AzureStorageHelper>();
         
@@ -50,7 +50,7 @@ var host = new HostBuilder()
         services.Configure<RequestDataOptions>(context.Configuration.GetSection(Constants.Appsettings.RequestDataOptionsSectionName));
         services.Configure<StatRangeOptions>(context.Configuration.GetSection(Constants.Appsettings.StatRangeOptionsSectionName));
         services.Configure<DiscordIntegrationOptions>(context.Configuration.GetSection(Constants.Appsettings.DiscordIntegrationOptionsSectionName));
-
+        services.Configure<CountryLawsListOptions>(context.Configuration.GetSection(Constants.Appsettings.CountryLawsOptionsSectionName));
     })
     .ConfigureAppConfiguration((context, builder) =>
     {

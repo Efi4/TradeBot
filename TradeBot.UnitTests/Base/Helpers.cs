@@ -102,6 +102,7 @@ namespace TradeBot.UnitTests.Base
             {
                 BaseUrl = "http://localhost:7071",
                 BaseBatchUrl = "http://localhost:7071",
+                BaseLawsUrl = "http://localhost:7071",
                 HttpHeadersDictionary = new Dictionary<string, string>
                 {
                     { "User-Agent", "TradeBot/1.0" },
@@ -200,6 +201,7 @@ namespace TradeBot.UnitTests.Base
             {
                 BaseUrl = "http://localhost:7071",
                 BaseBatchUrl = "http://localhost:7071/batch",
+                BaseLawsUrl = "http://localhost:7071",
                 HttpHeadersDictionary = new Dictionary<string, string>
                 {
                     { "User-Agent", "TradeBot/1.0" },

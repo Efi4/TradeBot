@@ -6,7 +6,7 @@ namespace TradeBot.Base.Models;
 /// Represents equipment data returned from the market API.
 /// Contains item details, price, and posting information.
 /// </summary>
-public class EquipmentResponseModel
+public class ItemResponseModel
 {
     /// <summary>
     /// Gets or sets the item code identifying the type of equipment.

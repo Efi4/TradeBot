@@ -37,7 +37,7 @@ public class ItemMarketDataContainerModel
     /// Gets or sets the list of equipment items from the market.
     /// </summary>
     [JsonPropertyName("items")]
-    public required List<Models.EquipmentResponseModel> ItemsModel { get; set; }
+    public required List<Models.ItemResponseModel> ItemsModel { get; set; }
 
     /// <summary>
     /// Gets or sets the cursor for pagination to retrieve the next batch of items.

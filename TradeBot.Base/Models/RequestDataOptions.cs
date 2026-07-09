@@ -19,6 +19,11 @@ public class RequestDataOptions
     public required string BaseBatchUrl { get; set; }
 
     /// <summary>
+    /// Gets or sets the base URL for batch laws API requests.
+    /// </summary>
+    public required string BaseLawsUrl { get; set; }
+
+    /// <summary>
     /// Gets or sets the dictionary of HTTP headers to include in API requests.
     /// Typically includes User-Agent, Accept, and authentication headers.
     /// </summary>

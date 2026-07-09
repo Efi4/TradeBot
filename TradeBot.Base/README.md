@@ -21,7 +21,7 @@ TradeBot.Base/
 │   ├── CheckPricesResult.cs             # Price checking operation result
 │   ├── DiscordIntegrationOptions.cs     # Discord webhook configuration
 │   ├── EquipmentQueueMessageModel.cs    # Queue message for equipment deals
-│   ├── EquipmentResponseModel.cs        # Equipment API response model
+│   ├── ItemResponseModel.cs        # Equipment API response model
 │   ├── ItemMarketResponseModel.cs       # Market item response model
 │   ├── ItemModel.cs                     # Individual item data
 │   ├── RequestDataOptions.cs            # HTTP request configuration

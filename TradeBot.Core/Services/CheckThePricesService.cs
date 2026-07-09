@@ -265,7 +265,7 @@ public class CheckThePricesService : ICheckThePricesService
         if (!initialResponse.IsSuccessStatusCode)
         {
             _logger.LogWarning($"{nameof(CheckThePricesService)}: Initial {Constants.EquipmentLookup.NameMapping[itemCode]} weapon fetch request failed with status code: {initialResponse.StatusCode} and reason: {initialResponse.ReasonPhrase}");
-            await _azureStorageHelper.PushToNotificationsQueueEncodedAsync($"Application encountered {initialResponse.StatusCode}-{initialResponse.ReasonPhrase} response.");
+            await _azureStorageHelper.PushToNotificationsQueueEncodedAsync($"{nameof(CheckThePricesService)}: Application encountered {initialResponse.StatusCode}-{initialResponse.ReasonPhrase} response.");
             throw new Exception($"{nameof(CheckThePricesService)}: Request to host indicates no success.");
         }
 
@@ -316,7 +316,7 @@ public class CheckThePricesService : ICheckThePricesService
         if (!initialResponse.IsSuccessStatusCode)
         {
             _logger.LogWarning($"{nameof(CheckThePricesService)}: Initial {Constants.EquipmentLookup.NameMapping[itemCode]} armor fetch request failed with status code: {initialResponse.StatusCode} and reason: {initialResponse.ReasonPhrase}");
-            await _azureStorageHelper.PushToNotificationsQueueEncodedAsync($"Application encountered {initialResponse.StatusCode}-{initialResponse.ReasonPhrase} response.");
+            await _azureStorageHelper.PushToNotificationsQueueEncodedAsync($"{nameof(CheckThePricesService)}: Application encountered {initialResponse.StatusCode}-{initialResponse.ReasonPhrase} response.");
             throw new Exception($"{nameof(CheckThePricesService)}: Request to host indicates no success.");
         }
 
@@ -426,9 +426,9 @@ public class CheckThePricesService : ICheckThePricesService
         
         foreach (var header in _headers)
         {
-            if(header.Key.Equals(Constants.AlternativeHeaders.BatchRequestPathDictionaryKey, StringComparison.OrdinalIgnoreCase))
+            if(header.Key.Equals(Constants.AlternativeHeaders.RequestPathDictionaryKey, StringComparison.OrdinalIgnoreCase))
             {
-                batchWeaponRequest.Headers.Add(Constants.AlternativeHeaders.BatchRequestPathDictionaryKey, Constants.AlternativeHeaders.BatchRequestPathDictionaryValue);
+                batchWeaponRequest.Headers.Add(Constants.AlternativeHeaders.RequestPathDictionaryKey, Constants.AlternativeHeaders.BatchRequestPathDictionaryValue);
             }
             else if(!String.IsNullOrEmpty(header.Value))  
             {
@@ -484,7 +484,7 @@ public class CheckThePricesService : ICheckThePricesService
         _batchRequestUriBuilder.Port = -1; 
     }
 
-    private void FillWeaponCollection(List<EquipmentResponseModel> weaponList)
+    private void FillWeaponCollection(List<ItemResponseModel> weaponList)
     {
         foreach(var equipment in weaponList)
         {
@@ -504,7 +504,7 @@ public class CheckThePricesService : ICheckThePricesService
         }
     }
 
-    private void FillArmorCollection(List<EquipmentResponseModel> armorList)    
+    private void FillArmorCollection(List<ItemResponseModel> armorList)    
     {
         foreach(var equipment in armorList)
         {
@@ -571,7 +571,7 @@ public class CheckThePricesService : ICheckThePricesService
         }
     }
 
-    private async Task ProcessPossibleArmorTradeDealsAsync(List<EquipmentResponseModel> equipment)
+    private async Task ProcessPossibleArmorTradeDealsAsync(List<ItemResponseModel> equipment)
     {
         foreach(var position in equipment)
         {
@@ -600,7 +600,7 @@ public class CheckThePricesService : ICheckThePricesService
             }
         }
     }
-    private async Task ProcessPossibleWeaponTradeDealsAsync(List<EquipmentResponseModel> equipment)
+    private async Task ProcessPossibleWeaponTradeDealsAsync(List<ItemResponseModel> equipment)
     {
         foreach(var position in equipment)
         {

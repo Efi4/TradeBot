@@ -247,7 +247,7 @@ services.Configure<DiscordIntegrationOptions>(configuration.GetSection("DiscordI
 
 - `CheckPricesResult`: Price checking operation result
 - `EquipmentQueueMessageModel`: Deal notification message
-- `EquipmentResponseModel`: API response structure
+- `ItemResponseModel`: API response structure
 - `ItemMarketResponseModel`: Market item details
 - `RequestDataOptions`: HTTP configuration
 - `StatRangeOptions`: Equipment stat ranges

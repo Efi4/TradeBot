@@ -14,16 +14,18 @@ public static class Constants
         public const string RequestDataOptionsSectionName = "RequestDataOptions";
         public const string StatRangeOptionsSectionName = "StatRangeOptions";
         public const string DiscordIntegrationOptionsSectionName = "DiscordIntegrationOptions";
+        public const string CountryLawsOptionsSectionName = "CountryLawsListOptions";
     }
     public static class AlternativeHeaders
     {
-        public const string BatchRequestPathDictionaryKey = "%3Apath";
+        public const string RequestPathDictionaryKey = "%3Apath";
         public const string BatchRequestPathDictionaryValue = "/trpc/itemOffer.getItemOffers?batch=1";
     }
     public static class AzureStorageConfiguration
     {
         public const string TradeDealsQueueName = "trade-deals";
         public const string NotificationsQueueName = "notifications";
+        public const string RegionTransferNotificationsQueueName = "region-transfer-notifications";
         public const string BlobContainerName = "deals";
     }
     public static class WeaponStatRanges
@@ -89,6 +91,17 @@ public static class Constants
             {"sniper", "Purple Sniper Gun"},
             {"tank", "Legendary Tank"},
             {"jet", "Mythic Jet"}
+        };
+    }
+    public static class CountryLookup
+    {
+        public static Dictionary<string, string> CountryMapping = new()
+        {
+            {"6813b6d546e731854c7ac865", "Ukraine"},
+            {"6813b6d446e731854c7ac7eb", "Turkiye"},
+            {"6813b6d446e731854c7ac7b2", "Hungary"},
+            {"6813b6d446e731854c7ac7a2", "Italy"},
+            {"6813b6d446e731854c7ac7be", "Bulgaria"}
         };
     }
 }

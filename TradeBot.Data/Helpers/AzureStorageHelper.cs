@@ -23,6 +23,7 @@ public class AzureStorageHelper : IAzureStorageHelper
     private readonly BlobContainerClient _containerClient;
     private readonly QueueClient _tradeDealsQueueClient;
     private readonly QueueClient _notificationQueueClient;
+    private readonly QueueClient _regionTransferNotificationsQueueClient;
 
     public AzureStorageHelper()
     {
@@ -33,6 +34,7 @@ public class AzureStorageHelper : IAzureStorageHelper
         var queueServiceClient = new QueueServiceClient(azureConnectionString);
         _tradeDealsQueueClient = queueServiceClient.GetQueueClient(Constants.AzureStorageConfiguration.TradeDealsQueueName);
         _notificationQueueClient = queueServiceClient.GetQueueClient(Constants.AzureStorageConfiguration.NotificationsQueueName);
+        _regionTransferNotificationsQueueClient = queueServiceClient.GetQueueClient(Constants.AzureStorageConfiguration.RegionTransferNotificationsQueueName);
     }
 
     /// <summary>
@@ -137,6 +139,7 @@ public class AzureStorageHelper : IAzureStorageHelper
             {
                 throw new InvalidOperationException($"{nameof(_notificationQueueClient)} Queue client not initialized. Initialize with queue name in constructor.");
             }
+            Console.WriteLine($"Pushing message to notifications queue: {message}");
             string base64Encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(message));
             await _notificationQueueClient.SendMessageAsync(base64Encoded);
         }
@@ -147,9 +150,29 @@ public class AzureStorageHelper : IAzureStorageHelper
     }
 
     /// <summary>
+    /// Pushes a message to the queue
+    /// </summary>
+    public async Task PushToRegionTransferNotificationsQueueEncodedAsync(string message)
+    {
+        try
+        {
+            if (_regionTransferNotificationsQueueClient == null)
+            {
+                throw new InvalidOperationException($"{nameof(_regionTransferNotificationsQueueClient)} Queue client not initialized. Initialize with queue name in constructor.");
+            }
+            string base64Encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(message));
+            await _regionTransferNotificationsQueueClient.SendMessageAsync(base64Encoded);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to push a message in the region transfer notifications queue", ex);   
+        }
+    }
+
+    /// <summary>
     /// Reads (receives) a message from the queue
     /// </summary>
-    public async Task<EquipmentResponseModel?> ReadFromTradeDealsQueueAsync()
+    public async Task<ItemResponseModel?> ReadFromTradeDealsQueueAsync()
     {
         try
         {
@@ -163,7 +186,7 @@ public class AzureStorageHelper : IAzureStorageHelper
                 throw new InvalidOperationException("No messages available in the queue");
             }
             
-            return JsonSerializer.Deserialize<EquipmentResponseModel>(message?.Value.Body);
+            return JsonSerializer.Deserialize<ItemResponseModel>(message?.Value.Body);
         }
         catch (Exception ex)
         {

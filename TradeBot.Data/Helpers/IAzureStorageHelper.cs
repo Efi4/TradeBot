@@ -22,7 +22,8 @@ public interface IAzureStorageHelper
     public Task DeleteBlobAsync(string blobName);
     public Task PushToTradeDealsQueueEncodedAsync(EquipmentQueueMessageModel equipment);
     public Task PushToNotificationsQueueEncodedAsync(string message);
-    public Task<EquipmentResponseModel?> ReadFromTradeDealsQueueAsync();
+    public Task PushToRegionTransferNotificationsQueueEncodedAsync(string message);
+    public Task<ItemResponseModel?> ReadFromTradeDealsQueueAsync();
     public Task<IEnumerable<QueueMessage>?> ReadFromQueueAsync(int maxMessages);
     public Task DeleteFromQueueAsync(string messageId, string popReceipt);
 }
