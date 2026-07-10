@@ -18,7 +18,7 @@ public class LawShortenItemModel
     /// Gets or sets the status of the law.
     /// </summary>
     [JsonPropertyName("status")]
-    public string Status { get; set; }
+    public required string Status { get; set; }
 
     /// <summary>
     /// Gets or sets the status of the law.
@@ -48,7 +48,7 @@ public class ShortLawModel
     [JsonPropertyName("type")]
     public required string Type { get; set; }
     [JsonPropertyName("targetCountry")]
-    public required string TargetCountry { get; set; }
+    public string TargetCountry { get; set; }
 }
 
 /// <summary>
@@ -58,9 +58,9 @@ public class ShortLawModel
 public class Votes
 {
     [JsonPropertyName("accept")]
-    public List<string> Accepted { get; set; }
+    public List<string> Accepted { get; set; } = [];
     [JsonPropertyName("abstain")]
-    public List<string> Abstained { get; set; }
+    public List<string> Abstained { get; set; } = [];
     [JsonPropertyName("reject")]
-    public List<string> Rejected { get; set; }
+    public List<string> Rejected { get; set; } = [];
 }
