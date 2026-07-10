@@ -103,7 +103,22 @@ public static class Constants
             {"6813b6d446e731854c7ac7a2", "Italy"},
             {"6813b6d446e731854c7ac7be", "Bulgaria"},
             {"6813b6d446e731854c7ac7b6", "Romania"},
-            {"6813b6d446e731854c7ac7ba", "Serbia"}
+            {"6813b6d446e731854c7ac7ba", "Serbia"},
+            {"6813b6d446e731854c7ac7b4", "Slovenia"},
+            {"6813b6d446e731854c7ac7bc", "Croatia"},
+            {"6813b6d446e731854c7ac7e8", "Greece"},
+            {"6873d0ea1758b40e712b5f3d", "Malta"},
+            {"6813b6d446e731854c7ac7ae", "Poland"},
+            {"6813b6d546e731854c7ac8a6", "Iran"},
+            {"6813b6d546e731854c7ac8d1", "Azerbaijan"},
+            {"6813b6d446e731854c7ac805", "Slovakia"},
+            {"6813b6d546e731854c7ac8c1", "Uzbekistan"},
+            {"6813b6d546e731854c7ac868", "Russia"},
+            {"6813b6d446e731854c7ac7b8", "Lithuania"},
+            {"683ddd2c24b5a2e114af15c3", "Iraq"},
+            {"6813b6d546e731854c7ac842", "Cyprus"},
+            {"6813b6d446e731854c7ac7b0", "Czechia"},
+            {"6813b6d446e731854c7ac7ac", "Austria"}
         };
     }
 }
