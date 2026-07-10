@@ -35,9 +35,9 @@ namespace AzureFunctionApp.Functions
         /// <returns>A task that represents the asynchronous operation.</returns>
         [Function(nameof(CheckTheLaws))]
         public async Task Run(
-            [TimerTrigger("0 */5 * * * *")] TimerInfo myTimer)
+            [TimerTrigger("30 */5 * * * *")] TimerInfo myTimer)
         {
-            if (DateTime.UtcNow.Hour > 4 && DateTime.UtcNow.Hour < 7)
+            if (DateTime.UtcNow.Hour > 1 && DateTime.UtcNow.Hour < 7)
             {
                 _logger.LogDebug($"{nameof(CheckTheLaws)}: Skipping execution during night hours: {DateTime.Now}");
                 return;
