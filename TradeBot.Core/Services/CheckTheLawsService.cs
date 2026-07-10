@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Web;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -101,7 +102,7 @@ public class CheckTheLawsService : ICheckTheLawsService
             _logger.LogError($"{nameof(CheckTheLawsService)}: Error checking laws: {ex.Message}");
         }
 
-        await _azureStorageHelper.PushToNotificationsQueueEncodedAsync($"Law check was completed. {lawsChecked} laws checked, for countries: {string.Join(", ", countryList)}.");
+        await _azureStorageHelper.PushToNotificationsQueueEncodedAsync($"Law check was completed. {lawsChecked} laws checked, for countries: {string.Join(", ", countryList.Select(ExtractCountryName))}.");
     }
 
     private async Task<bool> FetchAndCheckLawsAsync(string countryId)
@@ -120,11 +121,9 @@ public class CheckTheLawsService : ICheckTheLawsService
                 throw new Exception($"{nameof(CheckTheLawsService)}: Request to host indicates no success.");
             }
 
-            CountryLawsResponseModel? parsedContent = await initialResponse.Content.ReadFromJsonAsync<CountryLawsResponseModel>();
-            var initialData = parsedContent!.LawsResult.Data;
-            // var initialData = await ParseResponseContent(initialResponse.Content);
+            var lawsData = await ParseResponseContent(initialResponse.Content);
 
-            await ProcessPossibleLawsAsync(initialData.ItemsModel!, countryId);
+            await ProcessPossibleLawsAsync(lawsData!.Items, countryId);
         }
         catch(Exception ex)
         {
@@ -198,24 +197,26 @@ public class CheckTheLawsService : ICheckTheLawsService
         _batchRequestUriBuilder.Port = -1; 
     }
 
-    // private async Task<CountryLawsDataContainerModel> ParseResponseContent(HttpContent content)
-    // {
-    //     var parsedContent = await content.ReadFromJsonAsync<List<CountryLawsResponseModel>>() ?? throw new Exception($"{nameof(CheckTheLawsService)}: Failed to deserialize response content");
-    //     _logger.LogDebug($"{nameof(CheckTheLawsService)}: Laws response deserialized successfully.");
-    //     return parsedContent.LastOrDefault()!.Result.Data;
-    // }
-
-    private async Task ProcessPossibleLawsAsync(List<LawItem> lawItems, string countryId)
+    private async Task<CountryLawsDataModel> ParseResponseContent(HttpContent content)
     {
-        foreach(LawItem law in lawItems)
+        var parsedContent = await content.ReadFromJsonAsync<List<CountryResponseModel>>() ?? throw new Exception($"{nameof(CheckTheLawsService)}: Failed to deserialize response content");
+        var result = parsedContent.LastOrDefault()!.Result.Data.Deserialize<CountryLawsDataModel>();
+        _logger.LogDebug($"{nameof(CheckTheLawsService)}: Laws response deserialized successfully.");
+
+        return result;
+    }
+
+    private async Task ProcessPossibleLawsAsync(List<LawShortenItemModel> lawItems, string countryId)
+    {
+        foreach(LawShortenItemModel lawItem in lawItems)
         {
-            Enum.TryParse<LawTypes>(law.Data!.Type, ignoreCase: true, out var lawType);
-            
-            if((lawType is LawTypes.liberate_region or LawTypes.transfer_region) && law.CreatedAt > DateTime.UtcNow.AddMinutes(1500))
+            Enum.TryParse<LawTypes>(lawItem.Law!.Type, ignoreCase: true, out var lawType);
+             _logger.LogDebug($"{nameof(CheckTheLawsService)}: {lawItem.Law!.Type} in {ExtractCountryName(countryId)} laws to {ExtractCountryName(lawItem.Law!.TargetCountry)} date={lawItem.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")}.");
+            if((lawType is LawTypes.liberate_region or LawTypes.transfer_region or LawTypes.accept_transfer_region) && lawItem.CreatedAt > DateTime.UtcNow.AddMinutes(-20))
             {
                 try
                 {
-                    var regionTransferNotificationMessage = $"Region transfer threat detected: {law.Data!.Type} in {ExtractCountryName(countryId)} laws to {ExtractCountryName(law.Data!.TargetCountry)} at <t:{new DateTimeOffset((DateTime)law.CreatedAt).ToUnixTimeSeconds()}:R>.";
+                    var regionTransferNotificationMessage = $"Region transfer detected: {ExtractCountryName(countryId)} votes for {lawItem.Law!.Type} from(to) {ExtractCountryName(lawItem.Law!.TargetCountry)} at <t:{new DateTimeOffset(lawItem.CreatedAt).ToUnixTimeSeconds()}:R>. Votes: {lawItem.Votes.Accepted.Count()} Status: {lawItem.Status}.";
                     await _azureStorageHelper.PushToRegionTransferNotificationsQueueEncodedAsync(regionTransferNotificationMessage);
                 }
                 catch(Exception ex)

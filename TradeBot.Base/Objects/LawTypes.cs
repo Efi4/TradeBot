@@ -12,5 +12,8 @@ public enum LawTypes
     break_defensive_pact,
     liberate_region,
     accept_transfer_region,
-    sendMoneyToCountry
+    sendMoneyToCountry,
+    propose_peace,
+    accept_peace,
+    set_color_scheme
 }

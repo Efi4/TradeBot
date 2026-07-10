@@ -101,7 +101,9 @@ public static class Constants
             {"6813b6d446e731854c7ac7eb", "Turkiye"},
             {"6813b6d446e731854c7ac7b2", "Hungary"},
             {"6813b6d446e731854c7ac7a2", "Italy"},
-            {"6813b6d446e731854c7ac7be", "Bulgaria"}
+            {"6813b6d446e731854c7ac7be", "Bulgaria"},
+            {"6813b6d446e731854c7ac7b6", "Romania"},
+            {"6813b6d446e731854c7ac7ba", "Serbia"}
         };
     }
 }
