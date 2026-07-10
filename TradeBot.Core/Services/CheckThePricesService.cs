@@ -580,7 +580,7 @@ public class CheckThePricesService : ICheckThePricesService
                 w=> w.Type == armorType &&
                 w.Stat == position.Item.Skills.First().Value)?.Price;
             
-            if(averagePrice is not null && position.Price < averagePrice*0.9m && position.CreatedAt > DateTime.UtcNow.AddHours(-2))
+            if(averagePrice is not null && position.Price < averagePrice*0.9m && position.CreatedAt > DateTime.UtcNow.AddHours(-1))
             {
                 try
                 {
@@ -612,7 +612,7 @@ public class CheckThePricesService : ICheckThePricesService
                 w.Attack == attack &&
                 w.Crit == crit)?.Price;
             
-            if (averagePrice is not null && position.Price < averagePrice*0.9m && position.CreatedAt > DateTime.UtcNow.AddHours(-2))
+            if (averagePrice is not null && position.Price < averagePrice*0.9m && position.CreatedAt > DateTime.UtcNow.AddHours(-1))
             {
                 try
                 {
