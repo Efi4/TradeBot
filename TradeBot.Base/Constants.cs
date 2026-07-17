@@ -118,7 +118,8 @@ public static class Constants
             {"683ddd2c24b5a2e114af15c3", "Iraq"},
             {"6813b6d546e731854c7ac842", "Cyprus"},
             {"6813b6d446e731854c7ac7b0", "Czechia"},
-            {"6813b6d446e731854c7ac7ac", "Austria"}
+            {"6813b6d446e731854c7ac7ac", "Austria"},
+            {"6813b6d446e731854c7ac79a", "France"}
         };
     }
 }
