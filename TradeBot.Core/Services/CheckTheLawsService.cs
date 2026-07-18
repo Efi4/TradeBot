@@ -216,7 +216,9 @@ public class CheckTheLawsService : ICheckTheLawsService
             {
                 try
                 {
-                    var regionTransferNotificationMessage = $"Region transfer detected: {ExtractCountryName(countryId)} votes for {lawItem.Law!.Type} from(to) {ExtractCountryName(lawItem.Law!.TargetCountry)} at <t:{new DateTimeOffset(lawItem.CreatedAt).ToUnixTimeSeconds()}:R>. Votes: {lawItem.Votes.Accepted.Count()} Status: {lawItem.Status}.";
+                    var regionTransferNotificationMessage = $"Region transfer detected: {ExtractCountryName(countryId)}{(IsOliveUnion(countryId)? "(member of Olive Union)" : String.Empty)} "
+                    +$"votes for {lawItem.Law!.Type} from(to) {ExtractCountryName(lawItem.Law!.TargetCountry)}{(IsOliveUnion(lawItem.Law!.TargetCountry)? "(member of Olive Union)" : String.Empty)} "
+                    +$"at <t:{new DateTimeOffset(lawItem.CreatedAt).ToUnixTimeSeconds()}:R>. Votes: {lawItem.Votes.Accepted.Count()} Status: {lawItem.Status}.";
                     await _azureStorageHelper.PushToRegionTransferNotificationsQueueEncodedAsync(regionTransferNotificationMessage);
                 }
                 catch(Exception ex)
@@ -225,6 +227,10 @@ public class CheckTheLawsService : ICheckTheLawsService
                 }
             }
         }
+    }
+    private static bool IsOliveUnion(string countryId)
+    {
+        return Constants.CountryLookup.OliveUnion.Contains(countryId);
     }
     private static string ExtractCountryName(string countryId)
     {

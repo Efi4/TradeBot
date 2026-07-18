@@ -119,7 +119,69 @@ public static class Constants
             {"6813b6d546e731854c7ac842", "Cyprus"},
             {"6813b6d446e731854c7ac7b0", "Czechia"},
             {"6813b6d446e731854c7ac7ac", "Austria"},
-            {"6813b6d446e731854c7ac79a", "France"}
+            {"6813b6d446e731854c7ac79a", "France"},
+            {"683ddd2c24b5a2e114af1612", "SouthAfrica"},
+            {"6813b6d546e731854c7ac83c", "Chile"},
+            {"6813b6d546e731854c7ac848", "Morocco"},
+            {"6813b6d546e731854c7ac832", "Argentina"},
+            {"6813b6d546e731854c7ac85f", "Colombia"},
+            {"6813b6d446e731854c7ac7e5", "UnitedStates"},
+            {"6813b6d546e731854c7ac84e", "Tunisia"},
+            {"6813b6d546e731854c7ac8c4", "Kyrgyzstan"},
+            {"6873d0ea1758b40e712b5f1c", "Gunea-Bisau"},
+            {"6813b6d546e731854c7ac886", "Cuba"},
+            {"6813b6d546e731854c7ac89c", "PuertoRico"},
+            {"683ddd2c24b5a2e114af15d7", "Mongolia"},
+            {"6873d0ea1758b40e712b5f79", "Liberia"},
+            {"696a81da63e2489f47e5a28c", "Liechtenstein"},
+            {"6873d0ea1758b40e712b5f59", "Eswatini"},
+            {"6873d0ea1758b40e712b5f73", "Zambia"},
+            {"6813b6d546e731854c7ac87a", "Belarus"},
+            {"6813b6d546e731854c7ac8a6", "Iran"},
+            {"6813b6d546e731854c7ac868", "rusia"},
+            {"683ddd2c24b5a2e114af15bf", "Georgia"},
+            {"6813b6d546e731854c7ac86b", "Moldova"},
+            {"6813b6d446e731854c7ac805", "Slovakia"}
+        };
+        public static string[] Neighbours =
+        {
+            "6813b6d446e731854c7ac7ae", //"Poland"
+            "6813b6d546e731854c7ac8d1", //"Azerbaijan"
+            "6813b6d546e731854c7ac868", //"rusia"
+            "6813b6d546e731854c7ac87a", //"Belarus"
+            "6813b6d546e731854c7ac8a6", //"Iran"
+            "6813b6d446e731854c7ac7eb", //"Turkiye"
+            "6813b6d446e731854c7ac7b2", //"Hungary"
+            "6813b6d446e731854c7ac7b6", //"Romania"
+            "683ddd2c24b5a2e114af15bf", //"Georgia"
+            "6813b6d546e731854c7ac86b", //"Moldova"
+            "6813b6d446e731854c7ac805"  //"Slovakia"
+        };
+        public static string[] OliveUnion =
+        {
+            "6813b6d446e731854c7ac79a", //"France"
+            "6873d0ea1758b40e712b5f3d", //"Malta"
+            "6813b6d446e731854c7ac7eb", //"Turkiye"
+            "6813b6d446e731854c7ac7b2", //"Hungary"
+            "6813b6d446e731854c7ac7a2", //"Italy"
+            "6813b6d446e731854c7ac7be", //"Bulgaria"
+            "6813b6d446e731854c7ac7bc", //"Croatia"
+            "6813b6d446e731854c7ac7e8", //"Greece"
+            "683ddd2c24b5a2e114af1612", //"SouthAfrica
+            "6813b6d546e731854c7ac83c", //"Chile"
+            "6813b6d546e731854c7ac848", //"Morocco"
+            "6813b6d546e731854c7ac832", //"Argentina"
+            "6813b6d546e731854c7ac85f", //"Colombia"
+            "6813b6d446e731854c7ac7e5", //"UnitedStates"
+            "6813b6d546e731854c7ac84e", //"Tunisia"
+            "6873d0ea1758b40e712b5f1c", //"Gunea-Bisau"
+            "6813b6d546e731854c7ac886", //"Cuba"
+            "6813b6d546e731854c7ac89c", //"PuertoRico"
+            "683ddd2c24b5a2e114af15d7", //"Mongolia"
+            "6873d0ea1758b40e712b5f79", //"Liberia"
+            "696a81da63e2489f47e5a28c", //"Liechtenstein"
+            "6873d0ea1758b40e712b5f59", //"Eswatini"
+            "6873d0ea1758b40e712b5f73" //"Zambia"
         };
     }
 }
