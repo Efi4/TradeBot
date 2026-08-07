@@ -137,11 +137,9 @@ public static class Constants
             {"6873d0ea1758b40e712b5f59", "Eswatini"},
             {"6873d0ea1758b40e712b5f73", "Zambia"},
             {"6813b6d546e731854c7ac87a", "Belarus"},
-            {"6813b6d546e731854c7ac8a6", "Iran"},
             {"6813b6d546e731854c7ac868", "rusia"},
             {"683ddd2c24b5a2e114af15bf", "Georgia"},
-            {"6813b6d546e731854c7ac86b", "Moldova"},
-            {"6813b6d446e731854c7ac805", "Slovakia"}
+            {"6813b6d546e731854c7ac86b", "Moldova"}
         };
         public static string[] Neighbours =
         {
