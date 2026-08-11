@@ -120,7 +120,8 @@ namespace TradeBot.UnitTests.Base
             {
                 WebHookUrl = "https://discord.com/api/webhooks/test",
                 NotificationsWebHookUrl = "https://discord.com/api/webhooks/notifications",
-                RegionTransferNotificationWebHookUrl = "https://discord.com/api/webhooks/notifications"
+                RegionTransferNotificationWebHookUrl = "https://discord.com/api/webhooks/notifications",
+                NeighbourLawNotificationWebHookUrl = "https://discord.com/api/webhooks/notifications"
             };
             mock.Setup(x => x.Value).Returns(value);
             return mock;
