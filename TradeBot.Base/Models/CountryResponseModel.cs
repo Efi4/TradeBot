@@ -32,7 +32,7 @@ public class CountryGenericDataResultModel
 public class CountryLawsDataModel
 {
     [JsonPropertyName("items")]
-    public List<LawShortenItemModel> Items { get; set; }
+    public List<LawShortenItemModel>? Items { get; set; }
 
     [JsonPropertyName("nextCursor")]
     public string? NextCursor { get; set; }

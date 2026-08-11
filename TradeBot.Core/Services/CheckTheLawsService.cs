@@ -243,48 +243,58 @@ public class CheckTheLawsService : ICheckTheLawsService
         return result!;
     }
 
-    private async Task ProcessPossibleRegionTransferLawsAsync(List<LawShortenItemModel> lawItems, string countryId)
+    private async Task ProcessPossibleRegionTransferLawsAsync(List<LawShortenItemModel>? lawItems, string countryId)
     {
+        if(lawItems == null)
+        {
+            _logger.LogInformation($"{nameof(CheckTheLawsService)}: No laws to process to check region transfer.");
+            return;
+        }
         foreach(LawShortenItemModel lawItem in lawItems)
         {
-            Enum.TryParse<LawTypes>(lawItem.Law!.Type, ignoreCase: true, out var lawType);
-             _logger.LogDebug($"{nameof(CheckTheLawsService)}: {lawItem.Law!.Type} in {ExtractCountryName(countryId)} laws to {ExtractCountryName(lawItem.Law!.TargetCountry)} date={lawItem.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")}.");
-            if((lawType is LawTypes.liberate_region or LawTypes.transfer_region or LawTypes.accept_transfer_region) && lawItem.CreatedAt > DateTime.UtcNow.AddMinutes(-30))
+            try
             {
-                try
+                Enum.TryParse<LawTypes>(lawItem.Law!.Type, ignoreCase: true, out var lawType);
+                _logger.LogDebug($"{nameof(CheckTheLawsService)}: {lawItem.Law!.Type} in {ExtractCountryName(countryId)} laws to {ExtractCountryName(lawItem.Law!.TargetCountry!)} date={lawItem.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")}.");
+                if((lawType is LawTypes.liberate_region or LawTypes.transfer_region or LawTypes.accept_transfer_region) && lawItem.CreatedAt > DateTime.UtcNow.AddMinutes(-30))
                 {
                     var regionTransferNotificationMessage = $"Region transfer detected: {ExtractCountryName(countryId)}{(IsOliveUnion(countryId)? "(member of Olive Union)" : String.Empty)} "
-                    +$"votes for {lawItem.Law!.Type} from(to) {ExtractCountryName(lawItem.Law!.TargetCountry)}{(IsOliveUnion(lawItem.Law!.TargetCountry)? "(member of Olive Union)" : String.Empty)} "
-                    +$"at <t:{new DateTimeOffset(lawItem.CreatedAt).ToUnixTimeSeconds()}:R>. Votes: {lawItem.Votes.Accepted.Count()} Status: {lawItem.Status}.";
+                    +$"votes for {lawItem.Law!.Type} from(to) {ExtractCountryName(lawItem.Law!.TargetCountry!)}{(IsOliveUnion(lawItem.Law!.TargetCountry!)? "(member of Olive Union)" : String.Empty)} "
+                    +$"at <t:{new DateTimeOffset(lawItem.CreatedAt).ToUnixTimeSeconds()}:R>. Votes: {lawItem.Votes!.Accepted.Count()} Status: {lawItem.Status}.";
                     await _azureStorageHelper.PushToRegionTransferNotificationsQueueEncodedAsync(regionTransferNotificationMessage);
                 }
-                catch(Exception ex)
-                {
-                    _logger.LogError($"{nameof(CheckTheLawsService)}: Region transfer notification message was not pushed in queue, exception: {ex.Message}");
-                }
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError($"{nameof(CheckTheLawsService)}: Region transfer notification message was not pushed in queue, exception: {ex.Message}");
             }
         }
     }
 
-    private async Task ProcessPossibleNeighbourLawsAsync(List<LawShortenItemModel> lawItems, string countryId)
+    private async Task ProcessPossibleNeighbourLawsAsync(List<LawShortenItemModel>? lawItems, string countryId)
     {        
+        if(lawItems == null)
+        {
+            _logger.LogInformation($"{nameof(CheckTheLawsService)}: No laws to process to check neighbour laws.");
+            return;
+        }
         foreach(LawShortenItemModel lawItem in lawItems)
         {
-            Enum.TryParse<LawTypes>(lawItem.Law!.Type, ignoreCase: true, out var lawType);
-             _logger.LogDebug($"{nameof(CheckTheLawsService)}: {lawItem.Law!.Type} in {ExtractCountryName(countryId)} laws to {ExtractCountryName(lawItem.Law!.TargetCountry)} date={lawItem.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")}.");
-            if((lawItem.Law.TargetCountry == Constants.CountryLookup.HomeCountryId) && lawItem.CreatedAt > DateTime.UtcNow.AddMinutes(-30))
+            try
             {
-                try
+                Enum.TryParse<LawTypes>(lawItem.Law!.Type, ignoreCase: true, out var lawType);
+                _logger.LogDebug($"{nameof(CheckTheLawsService)}: {lawItem.Law!.Type} in {ExtractCountryName(countryId)} laws to {ExtractCountryName(lawItem.Law!.TargetCountry!)} date={lawItem.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")}.");
+                if((lawItem.Law.TargetCountry == Constants.CountryLookup.HomeCountryId) && lawItem.CreatedAt > DateTime.UtcNow.AddMinutes(-30))
                 {
                     var targetedLawNotificationMessage = $"Neighbour law detected: {ExtractCountryName(countryId)}{(IsOliveUnion(countryId)? "(member of Olive Union)" : String.Empty)} "
-                    +$"votes for {lawItem.Law!.Type} targeting {ExtractCountryName(Constants.CountryLookup.HomeCountryId)} "
-                    +$"at <t:{new DateTimeOffset(lawItem.CreatedAt).ToUnixTimeSeconds()}:R>. Votes: {lawItem.Votes.Accepted.Count()} Status: {lawItem.Status}.";
-                    await _azureStorageHelper.PushToTargetedLawsNotificationsQueueEncodedAsync(targetedLawNotificationMessage);
+                        +$"votes for {lawItem.Law!.Type} targeting {ExtractCountryName(Constants.CountryLookup.HomeCountryId)} "
+                        +$"at <t:{new DateTimeOffset(lawItem.CreatedAt).ToUnixTimeSeconds()}:R>. Votes: {lawItem.Votes!.Accepted.Count()} Status: {lawItem.Status}.";
+                        await _azureStorageHelper.PushToTargetedLawsNotificationsQueueEncodedAsync(targetedLawNotificationMessage);
                 }
-                catch(Exception ex)
-                {
-                    _logger.LogError($"{nameof(CheckTheLawsService)}: Targeted law notification message was not pushed in queue, exception: {ex.Message}");
-                }
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError($"{nameof(CheckTheLawsService)}: Targeted law notification message was not pushed in queue, exception: {ex.Message}");
             }
         }
     }

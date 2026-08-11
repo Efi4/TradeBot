@@ -24,13 +24,13 @@ public class LawShortenItemModel
     /// Gets or sets the status of the law.
     /// </summary>
     [JsonPropertyName("votes")]
-    public Votes Votes { get; set; }
+    public Votes? Votes { get; set; }
 
     /// <summary>
     /// Gets or sets the full item details including ID, code, and stats.
     /// </summary>
     [JsonPropertyName("data")]
-    public ShortLawModel Law { get; set; }
+    public required ShortLawModel Law { get; set; }
 
     /// <summary>
     /// Gets or sets the timestamp when the law was created.
@@ -48,7 +48,7 @@ public class ShortLawModel
     [JsonPropertyName("type")]
     public required string Type { get; set; }
     [JsonPropertyName("targetCountry")]
-    public string TargetCountry { get; set; }
+    public string? TargetCountry { get; set; }
 }
 
 /// <summary>

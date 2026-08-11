@@ -25,3 +25,4 @@ local.settings.json
 [Rr]elease/
 [Rr]eleases/
 .env.template
+TradeBot.Base/Models/responseContentExample.json
