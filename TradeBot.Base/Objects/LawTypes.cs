@@ -15,5 +15,9 @@ public enum LawTypes
     sendMoneyToCountry,
     propose_peace,
     accept_peace,
-    set_color_scheme
+    set_color_scheme,
+    changeTax,
+    set_specialization_item,
+    accept_join_alliance,
+    leave_alliance
 }

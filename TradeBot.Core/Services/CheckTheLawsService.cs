@@ -89,9 +89,11 @@ public class CheckTheLawsService : ICheckTheLawsService
         {
             foreach(var countryId in countryList)
             {
-                var isSuccessful = await FetchAndCheckLawsAsync(countryId);
-                if(isSuccessful) 
+                var lawsData = await FetchAndCheckLawsAsync(countryId);
+                
+                if(lawsData != null) 
                 {
+                    await ProcessPossibleRegionTransferLawsAsync(lawsData!.Items, countryId);
                     _logger.LogDebug($"{nameof(CheckTheLawsService)}: Country {countryId} laws were checked.");
                     lawsChecked+=10;
                 }
@@ -105,7 +107,44 @@ public class CheckTheLawsService : ICheckTheLawsService
         await _azureStorageHelper.PushToNotificationsQueueEncodedAsync($"Law check was completed. {lawsChecked} laws checked, for countries: {string.Join(", ", countryList.Select(ExtractCountryName))}.");
     }
 
-    private async Task<bool> FetchAndCheckLawsAsync(string countryId)
+    /// <summary>
+    /// Checks country laws of neighbouring countries and identifies laws which are target dedicated country.
+    /// </summary>
+    /// <returns>
+    /// A task that represents the asynchronous operation.
+    /// </returns>
+    /// <remarks>
+    /// This method fetches neighbouring countries' laws data, filters based on configuration,
+    /// and publishes warning messages to the appropriate queue for notification.
+    /// </remarks>
+    public async Task CheckTheNeighboursLawsAsync()
+    {
+        _logger.LogDebug($"{nameof(CheckTheLawsService)}: Starting to check neighbours' laws...");
+        int lawsChecked = 0;
+
+        PrepareQuerryStringParameters();
+        try
+        {
+            foreach(var countryId in Constants.CountryLookup.Neighbours)
+            {
+                var lawsData = await FetchAndCheckLawsAsync(countryId);
+                
+                if(lawsData != null) 
+                {
+                    await ProcessPossibleNeighbourLawsAsync(lawsData!.Items, countryId);
+                    _logger.LogDebug($"{nameof(CheckTheLawsService)}: Country {countryId} laws were checked.");
+                    lawsChecked+=10;
+                }
+            }
+        }
+        catch(Exception ex)
+        {
+            _logger.LogError($"{nameof(CheckTheLawsService)}: Error checking neighbours laws: {ex.Message}");
+        }
+
+        await _azureStorageHelper.PushToNotificationsQueueEncodedAsync($"Neighbours law check was completed. {lawsChecked} laws checked, for countries: {string.Join(", ", Constants.CountryLookup.Neighbours.Select(ExtractCountryName))}.");
+    }
+    private async Task<CountryLawsDataModel?> FetchAndCheckLawsAsync(string countryId)
     {
         var lawListRequest = PrepareRequest(countryId);
         _logger.LogDebug($"{nameof(CheckTheLawsService)}: Making initial fetch POST request to get {Constants.CountryLookup.CountryMapping[countryId]} laws.");
@@ -121,9 +160,8 @@ public class CheckTheLawsService : ICheckTheLawsService
                 throw new Exception($"{nameof(CheckTheLawsService)}: Request to host indicates no success.");
             }
 
-            var lawsData = await ParseResponseContent(initialResponse.Content);
-
-            await ProcessPossibleLawsAsync(lawsData!.Items, countryId);
+            CountryLawsDataModel lawsData = await ParseResponseContent(initialResponse.Content);
+            return lawsData;
         }
         catch(Exception ex)
         {
@@ -135,9 +173,8 @@ public class CheckTheLawsService : ICheckTheLawsService
             else {
             _logger.LogWarning($"{nameof(CheckTheLawsService)}: Exception {ex.Message}.");
             }
-            return false;
+            return null;
         }
-        return true;
     }
 
     private HttpRequestMessage PrepareRequest(string itemCode)
@@ -200,19 +237,19 @@ public class CheckTheLawsService : ICheckTheLawsService
     private async Task<CountryLawsDataModel> ParseResponseContent(HttpContent content)
     {
         var parsedContent = await content.ReadFromJsonAsync<List<CountryResponseModel>>() ?? throw new Exception($"{nameof(CheckTheLawsService)}: Failed to deserialize response content");
-        var result = parsedContent.LastOrDefault()!.Result.Data.Deserialize<CountryLawsDataModel>();
+        var result = parsedContent.LastOrDefault()!.Result!.Data.Deserialize<CountryLawsDataModel>();
         _logger.LogDebug($"{nameof(CheckTheLawsService)}: Laws response deserialized successfully.");
 
-        return result;
+        return result!;
     }
 
-    private async Task ProcessPossibleLawsAsync(List<LawShortenItemModel> lawItems, string countryId)
+    private async Task ProcessPossibleRegionTransferLawsAsync(List<LawShortenItemModel> lawItems, string countryId)
     {
         foreach(LawShortenItemModel lawItem in lawItems)
         {
             Enum.TryParse<LawTypes>(lawItem.Law!.Type, ignoreCase: true, out var lawType);
              _logger.LogDebug($"{nameof(CheckTheLawsService)}: {lawItem.Law!.Type} in {ExtractCountryName(countryId)} laws to {ExtractCountryName(lawItem.Law!.TargetCountry)} date={lawItem.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")}.");
-            if((lawType is LawTypes.liberate_region or LawTypes.transfer_region or LawTypes.accept_transfer_region) && lawItem.CreatedAt > DateTime.UtcNow.AddMinutes(-20))
+            if((lawType is LawTypes.liberate_region or LawTypes.transfer_region or LawTypes.accept_transfer_region) && lawItem.CreatedAt > DateTime.UtcNow.AddMinutes(-30))
             {
                 try
                 {
@@ -228,6 +265,30 @@ public class CheckTheLawsService : ICheckTheLawsService
             }
         }
     }
+
+    private async Task ProcessPossibleNeighbourLawsAsync(List<LawShortenItemModel> lawItems, string countryId)
+    {        
+        foreach(LawShortenItemModel lawItem in lawItems)
+        {
+            Enum.TryParse<LawTypes>(lawItem.Law!.Type, ignoreCase: true, out var lawType);
+             _logger.LogDebug($"{nameof(CheckTheLawsService)}: {lawItem.Law!.Type} in {ExtractCountryName(countryId)} laws to {ExtractCountryName(lawItem.Law!.TargetCountry)} date={lawItem.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")}.");
+            if((lawItem.Law.TargetCountry == Constants.CountryLookup.HomeCountryId) && lawItem.CreatedAt > DateTime.UtcNow.AddMinutes(-30))
+            {
+                try
+                {
+                    var targetedLawNotificationMessage = $"Neighbour law detected: {ExtractCountryName(countryId)}{(IsOliveUnion(countryId)? "(member of Olive Union)" : String.Empty)} "
+                    +$"votes for {lawItem.Law!.Type} targeting {ExtractCountryName(Constants.CountryLookup.HomeCountryId)} "
+                    +$"at <t:{new DateTimeOffset(lawItem.CreatedAt).ToUnixTimeSeconds()}:R>. Votes: {lawItem.Votes.Accepted.Count()} Status: {lawItem.Status}.";
+                    await _azureStorageHelper.PushToTargetedLawsNotificationsQueueEncodedAsync(targetedLawNotificationMessage);
+                }
+                catch(Exception ex)
+                {
+                    _logger.LogError($"{nameof(CheckTheLawsService)}: Targeted law notification message was not pushed in queue, exception: {ex.Message}");
+                }
+            }
+        }
+    }
+
     private static bool IsOliveUnion(string countryId)
     {
         return Constants.CountryLookup.OliveUnion.Contains(countryId);

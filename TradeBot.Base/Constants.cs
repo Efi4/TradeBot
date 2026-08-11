@@ -26,6 +26,7 @@ public static class Constants
         public const string TradeDealsQueueName = "trade-deals";
         public const string NotificationsQueueName = "notifications";
         public const string RegionTransferNotificationsQueueName = "region-transfer-notifications";
+        public const string TargetedLawsNotificationsQueueName = "targeted-laws-notifications";
         public const string BlobContainerName = "deals";
     }
     public static class WeaponStatRanges
@@ -95,6 +96,7 @@ public static class Constants
     }
     public static class CountryLookup
     {
+        public const string HomeCountryId = "6813b6d546e731854c7ac865";
         public static Dictionary<string, string> CountryMapping = new()
         {
             {"6813b6d546e731854c7ac865", "Ukraine"},
@@ -138,7 +140,8 @@ public static class Constants
             {"6813b6d546e731854c7ac87a", "Belarus"},
             {"6813b6d546e731854c7ac868", "rusia"},
             {"683ddd2c24b5a2e114af15bf", "Georgia"},
-            {"6813b6d546e731854c7ac86b", "Moldova"}
+            {"6813b6d546e731854c7ac86b", "Moldova"},
+            {"6813b70a9403bc4170a5da14", "Latvia"}
         };
         public static string[] Neighbours =
         {
@@ -152,7 +155,8 @@ public static class Constants
             "6813b6d446e731854c7ac7b6", //"Romania"
             "683ddd2c24b5a2e114af15bf", //"Georgia"
             "6813b6d546e731854c7ac86b", //"Moldova"
-            "6813b6d446e731854c7ac805"  //"Slovakia"
+            "6813b6d446e731854c7ac805", //"Slovakia"
+            "6813b70a9403bc4170a5da14" //"Latvia"
         };
         public static string[] OliveUnion =
         {

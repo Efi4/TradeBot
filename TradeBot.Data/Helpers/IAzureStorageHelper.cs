@@ -23,6 +23,7 @@ public interface IAzureStorageHelper
     public Task PushToTradeDealsQueueEncodedAsync(EquipmentQueueMessageModel equipment);
     public Task PushToNotificationsQueueEncodedAsync(string message);
     public Task PushToRegionTransferNotificationsQueueEncodedAsync(string message);
+    public Task PushToTargetedLawsNotificationsQueueEncodedAsync(string message);
     public Task<ItemResponseModel?> ReadFromTradeDealsQueueAsync();
     public Task<IEnumerable<QueueMessage>?> ReadFromQueueAsync(int maxMessages);
     public Task DeleteFromQueueAsync(string messageId, string popReceipt);

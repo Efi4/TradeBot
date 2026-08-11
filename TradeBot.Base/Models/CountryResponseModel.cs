@@ -14,7 +14,7 @@ public class CountryResponseModel
     /// Gets or sets the result container with country laws data.
     /// </summary>
     [JsonPropertyName("result")]
-    public required CountryGenericDataResultModel Result { get; set; }
+    public CountryGenericDataResultModel? Result { get; set; }
 }
 
 /// <summary>
@@ -35,5 +35,5 @@ public class CountryLawsDataModel
     public List<LawShortenItemModel> Items { get; set; }
 
     [JsonPropertyName("nextCursor")]
-    public string NextCursor { get; set; }
+    public string? NextCursor { get; set; }
 }

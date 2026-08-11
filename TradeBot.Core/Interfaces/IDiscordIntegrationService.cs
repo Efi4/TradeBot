@@ -53,5 +53,21 @@ public interface IDiscordIntegrationService
     /// Logs a warning if the HTTP request fails but does not throw an exception.
     /// </remarks>
     Task PostRegionTransferNotificationMessageInDedicatedChannelAsync(string message);
+
+    
+    /// <summary>
+    /// Posts a neighbour law notification message to the dedicated Discord channel.
+    /// </summary>
+    /// <param name="message">
+    /// The plain text message to post to the dedicated channel.
+    /// </param>
+    /// <returns>
+    /// A task that represents the asynchronous operation.
+    /// </returns>
+    /// <remarks>
+    /// This method is used for system notifications and alerts.
+    /// Logs a warning if the HTTP request fails but does not throw an exception.
+    /// </remarks>
+    Task PostNeighbourLawNotificationMessageInDedicatedChannelAsync(string message);
 }
 

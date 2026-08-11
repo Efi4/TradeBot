@@ -95,6 +95,26 @@ public class DiscordIntegrationService : IDiscordIntegrationService
         _logger.LogDebug($"{nameof(DiscordIntegrationService)}: Message was succesfully sent in dedicated discord channel.");
     }
 
+        /// <summary>
+    /// Posts a neighbour law notification message to the dedicated Discord channel.
+    /// </summary>
+    /// <param name="message">The plain text message to post in dedicated channel.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// This method is used for system notifications and alerts.
+    /// Logs a warning if the HTTP request fails but does not throw an exception.
+    /// </remarks>
+    public async Task PostNeighbourLawNotificationMessageInDedicatedChannelAsync(string message)
+    {
+        var discordChannelPostRequest = PrepareNotificationRequest(message, _discordIntegrationOptions.Value.NeighbourLawNotificationWebHookUrl);
+        var result = await _httpClient.SendAsync(discordChannelPostRequest);
+        if(!result.IsSuccessStatusCode)
+        {
+            _logger.LogWarning($"{nameof(DiscordIntegrationService)}: Unable to send a message. Reason:{result.ReasonPhrase}");
+        }
+        _logger.LogDebug($"{nameof(DiscordIntegrationService)}: Message was succesfully sent in dedicated discord channel.");
+    }
+
     private HttpRequestMessage PrepareRequest(EquipmentQueueMessageModel equipmentData)
     {
         var discordChannelPostRequest = new HttpRequestMessage(HttpMethod.Post, _discordIntegrationOptions.Value.WebHookUrl)

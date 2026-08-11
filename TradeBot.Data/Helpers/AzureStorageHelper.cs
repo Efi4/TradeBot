@@ -24,6 +24,7 @@ public class AzureStorageHelper : IAzureStorageHelper
     private readonly QueueClient _tradeDealsQueueClient;
     private readonly QueueClient _notificationQueueClient;
     private readonly QueueClient _regionTransferNotificationsQueueClient;
+    private readonly QueueClient _targetedLawsNotificationsQueueClient;
 
     public AzureStorageHelper()
     {
@@ -35,6 +36,7 @@ public class AzureStorageHelper : IAzureStorageHelper
         _tradeDealsQueueClient = queueServiceClient.GetQueueClient(Constants.AzureStorageConfiguration.TradeDealsQueueName);
         _notificationQueueClient = queueServiceClient.GetQueueClient(Constants.AzureStorageConfiguration.NotificationsQueueName);
         _regionTransferNotificationsQueueClient = queueServiceClient.GetQueueClient(Constants.AzureStorageConfiguration.RegionTransferNotificationsQueueName);
+        _targetedLawsNotificationsQueueClient = queueServiceClient.GetQueueClient(Constants.AzureStorageConfiguration.TargetedLawsNotificationsQueueName);
     }
 
     /// <summary>
@@ -166,6 +168,26 @@ public class AzureStorageHelper : IAzureStorageHelper
         catch (Exception ex)
         {
             throw new InvalidOperationException("Failed to push a message in the region transfer notifications queue", ex);   
+        }
+    }
+
+    /// <summary>
+    /// Pushes a message to the queue
+    /// </summary>
+    public async Task PushToTargetedLawsNotificationsQueueEncodedAsync(string message)
+    {
+        try
+        {
+            if (_targetedLawsNotificationsQueueClient == null)
+            {
+                throw new InvalidOperationException($"{nameof(_targetedLawsNotificationsQueueClient)} Queue client not initialized. Initialize with queue name in constructor.");
+            }
+            string base64Encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(message));
+            await _targetedLawsNotificationsQueueClient.SendMessageAsync(base64Encoded);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to push a message in the targeted laws notifications queue", ex);   
         }
     }
 
