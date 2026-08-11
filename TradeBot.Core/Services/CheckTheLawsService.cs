@@ -83,6 +83,11 @@ public class CheckTheLawsService : ICheckTheLawsService
         _logger.LogDebug($"{nameof(CheckTheLawsService)}: Starting to check laws...");
         int lawsChecked = 0;
         var countryList = _countryLaws.Value.CountriesList;
+        if(countryList == null || countryList.Count == 0)
+        {
+            _logger.LogWarning($"{nameof(CheckTheLawsService)}: No countries configured for law checking.");
+            return;
+        }
 
         PrepareQuerryStringParameters();
         try
@@ -125,7 +130,7 @@ public class CheckTheLawsService : ICheckTheLawsService
         PrepareQuerryStringParameters();
         try
         {
-            foreach(var countryId in Constants.CountryLookup.Neighbours)
+            foreach(string countryId in Constants.CountryLookup.Neighbours)
             {
                 var lawsData = await FetchAndCheckLawsAsync(countryId);
                 

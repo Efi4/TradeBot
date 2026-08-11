@@ -55,6 +55,7 @@ public static class Constants
     }
     public static class EquipmentLookup
     {
+        public const int ItemMarketTaxPercent = 0;
         public const double ReasonableEquipmentTreshold = 0.2;
         public const string AttackStatName = "attack";
         public const string CritStatName = "criticalChance";

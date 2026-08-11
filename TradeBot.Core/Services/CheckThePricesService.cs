@@ -589,7 +589,7 @@ public class CheckThePricesService : ICheckThePricesService
                         Item = position.Item,
                         Price = position.Price,
                         CreatedAt = position.CreatedAt,
-                        Margin = Math.Round( (decimal) (0.99m*averagePrice-1.01m*position.Price),3)
+                        Margin = Math.Round( (decimal) ((1-Constants.EquipmentLookup.ItemMarketTaxPercent*0.01m)*averagePrice - (1+Constants.EquipmentLookup.ItemMarketTaxPercent*0.01m)*position.Price),3)
                     });
                     _dealsFound++;
                 }
@@ -621,7 +621,7 @@ public class CheckThePricesService : ICheckThePricesService
                         Item = position.Item,
                         Price = position.Price,
                         CreatedAt = position.CreatedAt,
-                        Margin = Math.Round( (decimal) (0.99m*averagePrice - 1.01m*position.Price),3)
+                        Margin = Math.Round( (decimal) ((1-Constants.EquipmentLookup.ItemMarketTaxPercent*0.01m)*averagePrice - (1+Constants.EquipmentLookup.ItemMarketTaxPercent*0.01m)*position.Price),3)
                     });
                     _dealsFound++;
                 }
