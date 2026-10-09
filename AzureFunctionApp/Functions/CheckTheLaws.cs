@@ -37,11 +37,11 @@ namespace AzureFunctionApp.Functions
         public async Task Run(
             [TimerTrigger("15 */5 * * * *")] TimerInfo myTimer)
         {
-            if (DateTime.UtcNow.Hour > 1 && DateTime.UtcNow.Hour < 7)
-            {
-                _logger.LogDebug($"{nameof(CheckTheLaws)}: Skipping execution during night hours: {DateTime.Now}");
-                return;
-            }
+            // if (DateTime.UtcNow.Hour > 1 && DateTime.UtcNow.Hour < 7)
+            // {
+            //     _logger.LogDebug($"{nameof(CheckTheLaws)}: Skipping execution during night hours: {DateTime.Now}");
+            //     return;
+            // }
 
             try
             {
